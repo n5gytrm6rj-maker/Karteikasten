@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Vokabeln">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#F2F2F7">
+<title>Vokabeln</title>
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;background:#F2F2F7;color:#1c1c1e;
+  -webkit-user-select:none;user-select:none;overscroll-behavior:none}
+input,textarea,button{font-family:inherit;font-size:17px}
+#app{height:100%;display:flex;flex-direction:column;max-width:560px;margin:0 auto}
+.view{flex:1;overflow-y:auto;padding:6px 16px 16px;display:none;-webkit-overflow-scrolling:touch}
+.view.on{display:block}
+h1{font-size:32px;margin:6px 0 14px;font-weight:700;letter-spacing:-.5px}
+#topbar{display:flex;justify-content:space-between;align-items:center;padding:calc(env(safe-area-inset-top) + 10px) 16px 4px}
+.tile,.circ{width:38px;height:38px;border:0;background:#fff;color:#007AFF;display:flex;align-items:center;justify-content:center;padding:0;margin:0}
+.tile,.circ{border-radius:50%}
+.tile:active,.circ:active{background:#e5e5ea}
+.tile:active{background:#e5e5ea}
+#menuBg{position:fixed;inset:0;z-index:40;display:none}
+#menu{position:fixed;z-index:41;display:none;top:calc(env(safe-area-inset-top) + 54px);right:16px;min-width:230px;background:rgba(255,255,255,.97);border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.22);overflow:hidden}
+#menu button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:0;background:none;padding:14px 16px;font-size:17px;color:#1c1c1e;border-bottom:1px solid #e5e5ea}
+#menu button:last-child{border-bottom:0}
+#menu button:active{background:#e5e5ea}
+.tabbar{display:flex;background:rgba(249,249,249,.94);border-top:1px solid #d1d1d6;padding:6px 0 calc(env(safe-area-inset-bottom) + 6px)}
+.tab{flex:1;border:0;background:none;color:#8e8e93;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px}
+.tab svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tab.on{color:#007AFF}
+.card{background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:14px}
+.boxes{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}
+.box{background:#fff;border-radius:12px;padding:10px 4px;text-align:center}
+.box b{display:block;font-size:22px}
+.box span{font-size:11px;color:#8e8e93}
+.box i{display:block;font-style:normal;font-size:11px;color:#007AFF;min-height:14px;margin-top:2px}
+.seg{display:flex;background:#e3e3e8;border-radius:9px;padding:2px;margin-bottom:14px}
+.seg button{flex:1;border:0;background:none;border-radius:7px;padding:7px 2px;font-size:13px;color:#1c1c1e}
+.seg button.on{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.15);font-weight:600}
+.btn{display:block;width:100%;border:0;border-radius:14px;padding:15px;background:#007AFF;color:#fff;font-weight:600}
+.btn:disabled{background:#c7c7cc}
+.btn.sec{background:#fff;color:#007AFF}
+.btn.red{background:#fff;color:#FF3B30}
+.pill{border:0;background:#fff;color:#007AFF;border-radius:20px;padding:8px 14px;font-size:15px}
+.row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.search{width:100%;border:0;background:#e3e3e8;border-radius:10px;padding:9px 12px;margin-bottom:12px;-webkit-user-select:text;user-select:text}
+.list{background:#fff;border-radius:14px;overflow:hidden}
+.item{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px solid #e5e5ea;gap:10px}
+.item:last-child{border:0}
+.item:active{background:#f2f2f7}
+.item .t{min-width:0}
+.item .t div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .t small{color:#8e8e93;font-size:15px}
+.badge{font-size:12px;color:#8e8e93;white-space:nowrap}
+.empty{text-align:center;color:#8e8e93;padding:30px 10px}
+/* Lernen */
+#learn{position:fixed;inset:0;background:#F2F2F7;z-index:20;display:none;flex-direction:column;padding:calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 16px);max-width:560px;margin:0 auto}
+#learn.on{display:flex}
+.lhead{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;color:#8e8e93;margin-bottom:12px}
+#lundo{justify-self:start}
+#lend{justify-self:end}
+.skip{border:0;background:none;color:#8e8e93;font-size:15px;padding:12px;margin-top:4px}
+.lhead button{border:0;background:none;color:#007AFF;font-size:17px;padding:4px 0}
+.prog{height:4px;background:#e3e3e8;border-radius:2px;margin-bottom:16px}
+.prog div{height:100%;background:#007AFF;border-radius:2px;width:0;transition:width .25s}
+.flash{flex:1;background:#fff;border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;gap:18px;box-shadow:0 2px 12px rgba(0,0,0,.06);min-height:0;overflow:auto}
+.flash .q{font-size:30px;font-weight:600;word-break:break-word}
+.flash .a{font-size:26px;color:#007AFF;word-break:break-word;border-top:1px solid #e5e5ea;padding-top:18px;width:100%}
+.flash .hint{color:#8e8e93;font-size:14px}
+.lbtns{display:flex;gap:12px;margin-top:14px;min-height:54px}
+.lbtns .btn{flex:1}
+.lbtns .no{background:#FFE5E3;color:#D70015}
+.lbtns .yes{background:#DDF5E0;color:#1E7B34}
+.done{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center}
+.done .big{font-size:56px}
+/* Sheet */
+#sheet{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:30;display:none;align-items:flex-end;justify-content:center}
+#sheet.on{display:flex}
+.sheet{background:#F2F2F7;width:100%;max-width:560px;border-radius:18px 18px 0 0;padding:16px 16px calc(env(safe-area-inset-bottom) + 16px)}
+.sheet h2{margin:0 0 12px;font-size:19px;text-align:center}
+.sheet input,.sheet textarea{display:block;width:100%;border:0;border-radius:12px;padding:13px 14px;margin-bottom:10px;background:#fff;-webkit-user-select:text;user-select:text}
+.sheet textarea{height:160px;resize:none}
+.sheet .note{font-size:13px;color:#8e8e93;margin:0 4px 10px}
+.sheet .row{margin:0}
+.sheet .row .btn{flex:1}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="topbar">
+    <button class="circ" id="add" aria-label="Neue Vokabel" style="visibility:hidden"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg></button>
+    <button class="tile" id="more" aria-label="Mehr"><svg width="22" height="22" viewBox="0 0 22 22"><circle cx="4.5" cy="11" r="2" fill="currentColor"/><circle cx="11" cy="11" r="2" fill="currentColor"/><circle cx="17.5" cy="11" r="2" fill="currentColor"/></svg></button>
+  </div>
+
+  <!-- Lernen -->
+  <div class="view on" id="v-home">
+    <div class="boxes" id="boxes"></div>
+    <div class="seg" id="dir">
+      <button data-d="fw">Wort → Übers.</button>
+      <button data-d="bw">Übers. → Wort</button>
+      <button data-d="mix">Beide</button>
+    </div>
+    <button class="btn" id="start">Lernen starten</button>
+    <p class="note" id="homeNote" style="text-align:center;color:#8e8e93;font-size:14px;margin-top:12px"></p>
+  </div>
+
+  <!-- Vokabeln -->
+  <div class="view" id="v-words">
+    <h1>Vokabeln</h1>
+    <input class="search" id="q" type="search" placeholder="Suchen" autocomplete="off" autocapitalize="off">
+    <div class="list" id="list"></div>
+    <div style="height:14px"></div>
+    <button class="btn red" id="reset">Fortschritt zurücksetzen</button>
+  </div>
+
+  <nav class="tabbar">
+    <button class="tab on" data-v="home">
+      <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 11h18M10 14.5h4"/></svg>Lernen</button>
+    <button class="tab" data-v="words">
+      <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Vokabeln</button>
+  </nav>
+</div>
+
+<!-- Lernansicht -->
+<div id="learn">
+  <div class="lhead"><button id="lundo" style="visibility:hidden"><svg width="12" height="20" viewBox="0 0 12 20" style="vertical-align:-4px;margin-right:3px"><path d="M10 2L2 10l8 8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Zurück</button><span id="lcount"></span><button id="lend">Beenden</button></div>
+  <div class="prog"><div id="lbar"></div></div>
+  <div id="lbody" style="flex:1;display:flex;flex-direction:column;min-height:0"></div>
+</div>
+
+<!-- Menü -->
+<div id="menuBg"></div>
+<div id="menu">
+  <button id="m-imp"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg>Importieren</button>
+  <button id="m-exp"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></svg>Exportieren</button>
+</div>
+
+<!-- Sheet -->
+<div id="sheet"><div class="sheet" id="sheetBox"></div></div>
+
+<script>
+(function(){
+'use strict';
+var KEY='vokabelkasten_v1';
+var INTERVALS=[0,1,3,7,14,30]; // Tage je Fach (Index = Fach)
+var SEED_UNITA0=[["Pronti, partenza, via!", "Auf die Plätze, fertig, los!"], ["l'unità", "Lektion"], ["In Italia, all'università", "In Italien, an der Universität"], ["l'università", "Universität"], ["ci sono", "es gibt"], ["molto/-a", "viel"], ["ecco", "hier"], ["solo", "nur"], ["qualche", "einige"], ["l'esempio", "Beispiel"], ["guardare", "sich ansehen"], ["la cartina", "Landkarte"], ["e", "und"], ["la foto(grafia)", "Foto"], ["completare", "vervollständigen"], ["con", "mit"], ["il nome", "Name"], ["la città", "Stadt"], ["abbinare", "verbinden"], ["come", "wie"], ["il politecnico", "Technische Universität"], ["l'Accademia di Belle Arti", "Kunstakademie"], ["l'accademia", "Akademie"], ["il conservatorio", "Konservatorium, Musikhochschule"], ["statale", "staatlich, Staats-"], ["l'istituto", "Institut"], ["universitario/-a", "Universitäts-"], ["gli studi (m. pl.)", "Studium"], ["mio/-a", "mein/e"], ["la coppia", "Paar"], ["leggere", "lesen"], ["sotto", "unter"], ["sottolineare", "unterstreichen"], ["la parola", "Wort"], ["che", "der, die, das (Relativpronomen)"], ["capire (-isc-)", "verstehen"], ["sono", "sie sind"], ["essere", "sein"], ["simile", "ähnlich"], ["vostro/-a", "Ihr/e, euer/-re"], ["la lingua", "Sprache"], ["o", "oder"], ["altro/-a", "anderer/-e/-es, weiterer/-e/-es"], ["la riflessione", "Reflexion, Betrachtung"], ["plurilingue", "mehrsprachig"], ["il lessico", "Wortschatz"], ["il gruppo", "Gruppe"], ["quale", "welcher/-e/-es"], ["conoscere", "kennen"], ["il mare", "Meer"], ["la cultura", "Kultur"], ["la storia", "Geschichte"], ["il consiglio", "Ratschlag, Rat"], ["è", "es ist"], ["facile", "einfach"], ["memorizzare", "sich merken"], ["nuovo/-a", "neu"], ["se", "wenn"], ["studiare", "lernen, studieren"], ["ascoltare", "anhören, zuhören"], ["la presentazione", "Präsentation, Vorstellung"], ["lo/la studente/-essa", "Student/in"], ["il/la protagonista", "Protagonist/in"], ["la generazione", "Generation"], ["chiamarsi", "heißen"], ["scegliere", "(aus)wählen"], ["tra", "unter"], ["la lista", "Liste"], ["la nuvoletta", "Sprechblase"], ["in alto", "oben"], ["ciao", "hallo; auch: tschüss, ciao"], ["salve", "hallo, grüß Sie/dich/euch"], ["sono", "ich bin"], ["io", "ich"], ["buongiorno", "guten Tag, guten Morgen"], ["voi", "Sie (Pl.), ihr"], ["presentarsi", "sich vorstellen"]];
+var SEED_UNITA0_2=[["Piacere.", "Freut mich."], ["tu", "du"], ["la tabella", "Tabelle"], ["la forma", "Form"], ["mancante", "fehlend"], ["trovare", "finden"], ["il punto", "Punkt"], ["inserire (-isc-)", "einsetzen, einfügen"], ["la formula", "Formel"], ["il saluto", "Gruß"], ["buonasera", "guten Abend"], ["a presto", "bis bald"], ["arrivederci", "auf Wiedersehen"], ["alla prossima", "bis zum nächsten Mal"], ["prossimo/-a", "nächster/-e/-es"], ["il contesto", "Kontext"], ["informale", "informell"], ["buonanotte", "gute Nacht"], ["quando", "wenn"], ["si va", "man geht"], ["si", "man"], ["andare", "gehen"], ["il letto", "Bett"], ["la situazione", "Situation"], ["il dialogo", "Dialog"], ["l'immagine (f.)", "Bild"], ["il mini-dialogo", "Mini-Dialog"], ["formale", "förmlich"], ["Come va?", "Wie geht's?"], ["bene (avv.)", "gut"], ["grazie", "danke"], ["Come stai?", "Wie geht's dir?"], ["stare", "sich fühlen, gehen (Befinden)"], ["sì", "ja"], ["non c'è male", "nicht schlecht"], ["non", "nicht, kein"], ["il/la professore/-essa", "Professor/in"], ["i ragazzi (m. pl.)", "Leute (ugs.)"], ["il/la ragazzo/-a", "junger Mann / junge Frau"], ["tutto", "alles"], ["rileggere", "noch einmal lesen"], ["prima", "zuerst"], ["poi", "dann"], ["chiedere", "fragen"], ["la persona", "Person"], ["rispondere", "antworten"], ["Lei", "Sie (Sg.)"], ["molto", "sehr"], ["Benissimo!", "Sehr gut!"], ["abbastanza", "ziemlich"], ["Così così.", "So lala."], ["male", "schlecht"], ["Malissimo!", "Sehr schlecht!"], ["salutarsi", "sich grüßen"], ["la lezione", "Lektion, Unterricht"], ["la classe", "Unterrichtsraum"], ["la classe capovolta", "Flipped classroom"], ["l'alfabeto", "Alphabet"], ["ripetere", "wiederholen"], ["l'oggetto", "Gegenstand"], ["lo spelling", "Buchstabieren"], ["scrivere", "schreiben"], ["la lavagna", "Tafel, Whiteboard"], ["la bottiglia", "Flasche"], ["lo zaino", "Rucksack"], ["il quaderno", "Heft"], ["il proiettore", "Videoprojektor, Beamer"], ["la penna", "Stift"], ["il libro", "Buch"], ["il cellulare", "Handy, Smartphone"], ["osservare", "betrachten"], ["il cuore", "Herz"], ["rappresentare", "darstellen"], ["tuo/-a", "dein/e"], ["l'idea", "Idee"], ["vuoi", "du willst"], ["volere", "wollen"], ["usare", "benutzen, verwenden"], ["giocare", "spielen"], ["fare lo spelling", "buchstabieren"], ["fare", "machen, tun"], ["giusto/-a", "richtig"], ["l'arte (f.)", "Kunst"], ["la fonetica", "Phonetik"]];
+var SEED_3=[["la regola", "Regel"], ["pronunciare", "aussprechen"], ["la pronuncia", "Aussprache"], ["la lettera", "Buchstabe"], ["quello/-a", "der-/die-/dasjenige"], ["il fungo", "Pilz"], ["Studio informatica", "Ich studiere Informatik"], ["il mondo", "Welt"], ["cercare", "suchen"], ["qui", "hier"], ["sotto", "unten"], ["relativo/-a", "betreffend, bezüglich"], ["controllare", "überprüfen"], ["la mensa", "Mensa"], ["il teatro", "Theater"], ["l'aula", "Aula"], ["la natura", "Natur"], ["la biblioteca", "Bibliothek"], ["il dipartimento", "Abteilung, Fachbereich (Universität)"], ["il corso", "Kurs"], ["la piazza", "Platz"], ["la segreteria", "Sekretariat"], ["il semestre", "Semester"], ["Che cosa...?", "Was ...?"], ["la matricola", "Studierende/r im ersten Semester"], ["primo/-a", "erster/-e/-es"], ["l'anno", "Jahr"], ["Dove...?", "Wo ...?"], ["segnare", "ankreuzen, anstreichen"], ["la risposta", "Antwort"], ["corretto/-a", "korrekt"], ["di nuovo", "nochmals"], ["abitare", "wohnen"], ["seguente", "folgend"], ["l'espressione (f.)", "Ausdruck"], ["ma", "aber"], ["comunque", "jedenfalls; wie auch immer"], ["ma dai", "ach, komm"], ["bello/-a", "schön"], ["no", "nein"], ["Di dove...?", "Woher ...?"], ["carino/-a", "hübsch"], ["anche", "auch"], ["proprio", "genau, gerade; ausgerechnet"], ["vicino", "in der Nähe"], ["Che fortuna!", "Was für ein Glück!"], ["che", "was für"], ["la fortuna", "Glück"], ["esprimere", "ausdrücken"], ["la sorpresa", "Überraschung"], ["dire", "sagen"], ["il corso di laurea", "Studiengang"], ["la laurea", "Hochschulabschluss"], ["la provenienza", "Herkunft"], ["la residenza", "Wohnort"], ["a turno", "abwechselnd"], ["fare una domanda", "eine Frage stellen"], ["la domanda", "Frage"], ["incontrare", "treffen, auf etw. treffen"], ["italiano/-a", "italienisch"], ["trovarsi", "sich befinden"], ["così", "so"], ["meglio (avv.)", "besser"], ["imparare", "lernen"], ["la geografia", "Geographie"], ["alcuni/-e", "einige"], ["straniero/-a", "ausländisch"], ["hanno", "sie haben"], ["avere", "haben"], ["l'attività", "Tätigkeit"], ["Attenzione!", "Achtung!"], ["corrispondente", "entsprechend"], ["domandare", "fragen"], ["parlare", "sprechen, reden"], ["indicare", "(an)zeigen; angeben, nennen"], ["dice", "er/sie sagt"], ["il numero", "Zahl"], ["terzo/-a", "dritter/-e/-es"], ["coniugare", "konjugieren"]];
+var SEED_4=[["lui", "er"], ["lei", "sie (Sg.)"], ["Lei", "Sie"], ["noi", "wir"], ["loro", "sie (Pl.)"], ["il minuto", "Minute"], ["il tempo", "Zeit"], ["classificare", "einordnen, sortieren"], ["finora", "bis jetzt"], ["secondo", "nach"], ["l'area", "(Fach-)Bereich"], ["scientifico/-a", "wissenschaftlich"], ["sociale", "sozial, gesellschaftlich"], ["umanistico/-a", "geisteswissenschaftlich"], ["sanitario/-a", "Gesundheits-"], ["la pagina", "Seite"], ["l'insegnante (m. + f.)", "Lehrer/in"], ["di classe", "stilvoll"], ["riattivare", "reaktivieren"], ["ora", "jetzt, nun"], ["toccare (a)", "dran sein"], ["girare", "herumgehen, herumlaufen"], ["intervistarsi", "sich interviewen"], ["ha", "er/sie hat"], ["la cosa", "Sache"], ["in comune", "gemeinsam"], ["iniziare (a)", "beginnen, anfangen (zu)"], ["contare", "zählen"], ["ogni", "jeder/-e/-es"], ["potere", "dürfen, können"], ["nominare", "nennen"], ["il multiplo", "Vielfache"], ["al suo posto", "stattdessen"], ["suo/-a", "sein/e, ihr/e"], ["il posto", "Stelle"], ["l'errore (m.)", "Fehler"], ["ricominciare", "wieder anfangen"], ["l'incontro", "Begegnung, Treffen"], ["dopo", "nach"], ["l'amico/-a", "Freund/in"], ["secondo voi", "Ihrer/eurer Meinung nach"], ["immaginare", "sich vorstellen"], ["il profilo", "Profil"], ["la parte", "Teil"], ["l'informazione (f.)", "Information"], ["scoprire", "entdecken"], ["vero/-a", "richtig"], ["falso/-a", "falsch"], ["tutto/-a", "ganz"], ["ha ... anni", "er/sie ist ... Jahre alt"], ["il caffè", "Espresso, Kaffee"], ["invitare", "einladen"], ["la festa", "Fest, Feier"], ["libero/-a", "frei"], ["domani", "morgen"], ["la sera", "Abend"], ["il numero", "Nummer"], ["il telefono", "Telefon"], ["sapere", "wissen"], ["qualcosa", "etwas"], ["più", "mehr"], ["l'eserciziario", "Arbeitsbuch, Übungsbuch"], ["Quanti anni hai?", "Wie alt bist du?"], ["Quanto/-a...?", "Wie viel ...?"], ["pensare (a)", "denken (an)"], ["l'età", "Alter"], ["immaginario/-a", "imaginär"], ["il/la compagno/-a", "Kommilitone/-in"], ["mettersi", "sich hinstellen"], ["la fila", "Reihe"], ["il/la meno giovane", "der/die Älteste"], ["meno", "weniger"], ["giovane", "jung"], ["il/la più giovane", "der/die Jüngste"], ["la pausa", "Pause"], ["la frase", "Satz"], ["tratto/-a da", "entnommen aus"], ["circa", "circa"], ["l'ora", "Stunde"], ["l'appuntamento", "Termin"], ["davanti a", "vor"], ["questo/-a", "dieser/-e/-es"], ["aggiungere", "hinzufügen"]];
+var SEED_5=[["il portafoglio", "Brieftasche, Geldbörse"], ["il tablet [ˈtaːblet]", "Tablet"], ["lo specchietto", "Taschenspiegel"], ["il caricatore", "Ladekabel"], ["la caramella", "Bonbon"], ["la borraccia", "Trinkflasche"], ["l'agenda", "(Taschen-)Kalender, Notizbuch"], ["la chiavetta USB", "USB-Stick"], ["la matita", "Bleistift"], ["la gomma", "Radiergummi"], ["il fazzoletto", "Taschentuch"], ["chi", "wer"], ["pronto/-a", "bereit, fertig"], ["il disegno", "Zeichnung"], ["l'acqua", "Wasser"], ["il panino", "Brötchen"], ["la parmigiana", "Parmigiana (Auberginenauflauf mit Parmesan)"], ["il tramezzino", "Tramezzino (dreieckiges Sandwich)"], ["il formaggio", "Käse"], ["la pizzetta", "kleine Pizza"], ["la bibita", "Getränk (Soft Drink)"], ["il toast", "Toast"], ["il dolce", "Süßspeise"], ["lo spumante", "Sekt, Schaumwein"], ["l'aperitivo", "Aperitif"], ["la noce", "Nuss, Walnuss"], ["riflettere", "überlegen, nachdenken"], ["formare", "bilden"], ["l'app [app] (f.)", "App"], ["digitale", "digital"], ["creare", "kreieren, erstellen"], ["il collage [kolˈlaʒ]", "Collage"], ["l'alimento", "Lebensmittel"], ["la bevanda", "Getränk"], ["in basso", "unten"], ["mostrare", "zeigen"], ["il secondo", "Sekunde"], ["elencare", "auflisten"], ["ricordare", "(sich) erinnern"], ["il limone", "Zitrone"], ["l'aranciata", "Orangenlimonade"], ["il pomodoro", "Tomate"], ["lo spritz", "Aperol Spritz"], ["il tè", "Tee"], ["la birra", "Bier"], ["la mozzarella", "Mozzarella"], ["il liquore", "Likör"], ["la marmellata", "Marmelade"], ["la torta", "Torte"], ["portare", "(mit)bringen"], ["la chat", "Chat"], ["il piatto", "Gericht"], ["presente", "vorhanden"], ["il buffet [buˈffe]", "Büfett"], ["l'Erasmus (m.)", "Erasmus-Programm"], ["ha aggiunto", "er/sie hat hinzugefügt"], ["preparare", "zubereiten, vorbereiten"], ["la ricetta", "Rezept"], ["il/la nonno/-a", "Großvater/-mutter"], ["l'arancino", "gefüllte, frittierte Reiskugel"], ["comprare", "kaufen"], ["prendere", "nehmen"], ["l'insalata", "Salat"], ["andare bene", "passen"], ["invece", "hingegen"], ["scusare", "entschuldigen"], ["qualcuno/-a", "jemand"], ["il tiramisù", "Tiramisu"], ["già", "schon"], ["il bicchiere", "Glas"], ["il piatto", "Teller"], ["a proposito", "apropos"], ["tutti/-e", "alle"], ["il modo", "Art und Weise"], ["diverso/-a", "unterschiedlich, verschieden"], ["lo yogurt", "Joghurt"], ["siete invitati/-e", "Sie sind / ihr seid eingeladen"], ["piccolo/-a", "klein"], ["cosa", "was"], ["precedente", "vorherig"], ["internazionale", "international"], ["adeguato/-a", "passend, angemessen"]];
+var SEED_6=[["a destra", "rechts"], ["la destra", "rechte Seite"], ["adesso", "jetzt"], ["in giro", "unterwegs"], ["la specialità", "Spezialität"], ["la fonduta", "Fondue"], ["il vino", "Wein"], ["buono/-a", "gut"], ["la conversazione", "Gespräch"], ["il tema", "Thema"], ["il cibo", "Essen"], ["lo studio", "Studium"], ["l'esame (m.)", "Prüfung"], ["riascoltare", "wieder hören"], ["bere", "trinken"], ["per", "für"], ["me", "mich"], ["vorrei", "ich möchte, ich hätte gern"], ["dopo", "nachher, später"], ["bevo", "ich trinke"], ["l'alcolico", "alkoholisches Getränk"], ["la coca", "(Coca) Cola"], ["vuole", "er/sie will"], ["desiderare", "wünschen"], ["presentare", "vorstellen"], ["viene", "er/sie kommt"], ["venire", "(mit)kommen"], ["la casa", "Haus, Wohnung"], ["ve la presenta", "er/sie stellt sie euch vor"], ["ringraziare", "danken, sich bedanken"], ["senti", "hör (mal)"], ["sentire", "hören"], ["cambiare", "wechseln"], ["so", "ich weiß"], ["un po'", "ein wenig"], ["la canzone", "Lied"], ["fare attenzione (a)", "achten (auf), aufpassen (auf)"], ["evidenziato/-a", "hervorgehoben"], ["il cornetto", "Hörnchen, Croissant"], ["senza", "ohne"], ["il glutine", "Gluten"], ["il suono", "Laut"], ["il colore", "Farbe"], ["il glicine", "Glyzinie, Blauregen"], ["il progetto", "Projekt"], ["l'azione (f.)", "Aktion"], ["l'inizio", "Anfang"], ["organizzare", "organisieren"], ["decidere", "entscheiden"], ["mangiare", "essen"], ["vegetariano/-a", "vegetarisch"], ["vegano/-a", "vegan"], ["la classe", "Klasse (Gruppe)"], ["il/la portavoce", "Wortführer/in, Sprecher/in"], ["il resto", "Rest"], ["votare", "stimmen"], ["piacere", "gefallen, mögen"], ["di più", "am meisten"], ["insieme", "zusammen"], ["in più", "zu viel"], ["la scuola", "Schule"], ["importante", "wichtig"], ["amare", "lieben"], ["il linguaggio di programmazione", "Programmiersprache"], ["il giornale", "Zeitung"], ["il social (network)", "soziales Netzwerk"], ["sportivo/-a", "sportlich"], ["la giustizia", "Gerechtigkeit"], ["l'esperto/-a", "Experte/-in"], ["la banca", "Bank"], ["la finanza", "Finanz(wesen)"], ["spesso", "oft"], ["almeno", "mindestens"], ["vi", "euch"], ["interessare", "interessieren"], ["seguire", "(be)folgen"], ["funzionare", "funktionieren"]];
+var SEED_N0=[["il bar", "Café, Bar"], ["la chiacchiera", "Plauderei, Schwätzchen"], ["incontrarsi", "sich treffen"], ["fare colazione", "frühstücken"], ["la colazione", "Frühstück"], ["i cereali (m. pl.)", "Müsli"], ["la cioccolata calda", "heiße Schokolade"], ["caldo/-a", "warm, heiß"], ["la spremuta d'arancia", "frisch gepresster Orangensaft"], ["l'arancia", "Orange"], ["Quant'è?", "Wie viel macht das?"], ["l'euro", "Euro"], ["ancora una volta", "noch einmal"], ["ancora", "noch"], ["la volta", "Mal"], ["Quant'è il conto?", "Wie viel macht das?"], ["il conto", "Rechnung"], ["pagare", "bezahlen"], ["freddo/-a", "kalt"], ["amaro/-a", "bitter"], ["dolce", "süß"], ["naturale", "ohne Kohlensäure"], ["gassato/-a", "mit Kohlensäure"], ["il riquadro", "Feld, Kasten"]];
+var SEED_N1=[["Come ti organizzi?", "Wie organisierst du dich?"], ["organizzarsi", "sich organisieren"], ["lavorare", "arbeiten"], ["dare un esame", "eine Prüfung ablegen/machen"], ["dare", "geben"], ["la ripetizione", "Nachhilfe"], ["il latino", "Latein"], ["il/la dogsitter", "Hundesitter/in"], ["come", "als"], ["il/la cameriere/-a", "Kellner/in"], ["il cinema", "Kino"], ["fare la spesa", "einkaufen"], ["la spesa", "Einkauf"], ["la pallavolo", "Volleyball"], ["l'analisi matematica (f.)", "Analysis, mathematische Analyse"], ["suonare", "spielen (Instrument)"], ["la chitarra", "Gitarre"], ["fare le pulizie", "putzen"], ["la pulizia", "Reinigung, Sauberkeit"], ["il/la barista", "Barkeeper/in"], ["frequentare", "besuchen"], ["riguardante", "betreffend"], ["il lavoro", "Arbeit"], ["confrontare", "vergleichen"], ["la vita", "Leben"], ["che", "welcher/-e/-es"], ["l'esperienza", "Erfahrung"], ["per", "um ... zu"], ["le spese universitarie (f. pl.)", "Studienausgaben"], ["la spesa", "Ausgabe"], ["privato/-a", "privat"], ["il membro", "Mitglied"], ["iscriversi", "beitreten"], ["benvenuto/-a", "willkommen"], ["lo studentato", "Studierendenwohnheim"], ["faccio (il/la...)", "ich arbeite (als ...)"], ["il/la babysitter", "Babysitter/in"], ["l'interesse (m.)", "Interesse"], ["personale", "persönlich"], ["curare", "betreuen"], ["il sito (web)", "Website"], ["tanto (avv.)", "viel"], ["la tassa", "Gebühr"], ["perché", "weil, denn"], ["facciamo", "wir machen"], ["un sacco (di)", "eine Menge"], ["dormire", "schlafen"], ["poco (avv.)", "wenig"], ["interessante", "interessant"], ["la realtà", "Wirklichkeit"], ["da tanto tempo", "seit langer Zeit"], ["tanto/-a", "viel"], ["la famiglia", "Familie"], ["lì", "dort"], ["la media", "Durchschnitt"], ["il giorno", "Tag"], ["il/la pendolare", "Pendler/in"], ["il viaggio", "Reise"], ["lungo/-a", "lang"], ["il lavoretto", "Minijob"], ["finanziare", "finanzieren"], ["l'hobby [ˈɔbbi] (m.)", "Hobby"], ["il fine settimana", "Wochenende"], ["la settimana", "Woche"], ["la discoteca", "Diskothek"], ["il pianoforte", "Klavier"], ["purtroppo", "leider"], ["poco/-a", "wenig"], ["il motivo", "Grund"], ["il testo", "Text"], ["molto (avv.)", "viel"], ["il futuro", "Zukunft"], ["possibile", "möglich"], ["più (inv.)", "mehrere"], ["la soluzione", "Lösung"], ["l'elemento", "Element"], ["partire", "abfahren, abreisen"], ["offrire", "anbieten"], ["la vacanza studio", "Bildungsurlaub"], ["la vacanza", "Urlaub"], ["il/la cassiere/-a", "Kassierer/in"], ["il supermercato", "Supermarkt"], ["ballare", "tanzen"], ["altro", "Sonstiges"], ["frequente", "häufig"], ["se", "ob"], ["o no", "oder nicht"], ["perché", "warum"], ["Sono le nove e dieci.", "Es ist neun Uhr zehn."], ["il (messaggio) vocale", "Sprachnachricht"], ["il messaggio", "Nachricht"], ["la danza", "Tanz"], ["il lunedì", "Montag"], ["il martedì", "Dienstag"], ["il mercoledì", "Mittwoch"], ["il giovedì", "Donnerstag"], ["il venerdì", "Freitag"], ["il sabato", "Samstag"], ["la domenica", "Sonntag"], ["prendere (un) appuntamento", "einen Termin vereinbaren"], ["l'ora", "Uhrzeit"], ["Che ora è? / Che ore sono?", "Wie viel Uhr ist es?"], ["il quarto (d'ora)", "Viertel(stunde)"], ["la mezzanotte", "Mitternacht"], ["mezzo/-a", "halb"], ["meno", "vor"], ["l'una", "ein Uhr"], ["il mezzogiorno", "Mittag"], ["ufficiale", "offiziell"], ["la somiglianza", "Ähnlichkeit"], ["la differenza", "Unterschied"], ["rispetto a", "im Vergleich zu"], ["svolgere", "ausführen"], ["A che ora?", "Um wie viel Uhr?"], ["stasera", "heute Abend"], ["preferire (-isc-)", "bevorzugen, vorziehen"], ["fuori", "draußen"], ["prima", "früher, vorher"], ["richiamare", "lenken"], ["l'attenzione (f.)", "Aufmerksamkeit"], ["l'orario", "Uhrzeit"], ["la proposta", "Vorschlag"], ["la fascia oraria", "Zeitabschnitt"], ["preciso/-a", "genau"], ["accettare", "annehmen"], ["il modello", "Muster, Modell"], ["cambiare", "ändern"], ["la destinazione", "Ziel(ort)"], ["sistematizzare", "systematisieren"], ["verbale", "Verb-"], ["vivere", "leben"], ["finire (-isc-)", "abschließen, beenden; fertig werden; zu Ende gehen"], ["evidenziare", "hervorheben"], ["uguale", "gleich"], ["fisso/-a", "fest"], ["lo sport", "Sport"], ["la videochiamata", "Videoanruf"], ["la mattina", "Vormittag"], ["il pomeriggio", "Nachmittag"], ["la notte", "Nacht"], ["tornare", "zurückkommen"], ["divertirsi", "Spaß haben"], ["farsi la doccia", "duschen"], ["la doccia", "Dusche"], ["vestirsi", "sich anziehen"], ["alzarsi", "aufstehen"], ["svegliarsi", "aufwachen"], ["pranzare", "zu Mittag essen"], ["cenare", "zu Abend essen"], ["correre", "rennen, laufen"], ["uscire", "ausgehen, hinausgehen"], ["lo scambio", "Austausch"], ["la battuta", "Dialogzeile"], ["soltanto", "nur"], ["intanto", "inzwischen"], ["informarsi", "sich informieren, sich erkundigen"], ["finalmente (avv.)", "endlich"], ["allora", "also (dann), nun"], ["non ... mai", "nie"], ["chiamare", "anrufen"], ["avere ragione", "recht haben"], ["pian piano", "langsam"], ["orientarsi", "sich orientieren"], ["dai", "etwa: na gut; komm"], ["la squadra", "Mannschaft"], ["sempre", "immer"], ["presto (avv.)", "früh"], ["insomma", "also, kurz und gut"], ["che", "was"], ["vabbè", "na gut"], ["raccontare", "erzählen"], ["cominciare", "beginnen, anfangen"], ["il pranzo", "Mittagessen"], ["fermarsi", "sich aufhalten, bleiben"], ["l'aula studio", "Lernraum"], ["quindi", "daher"], ["restare", "bleiben"], ["fino a", "bis (zu)"], ["tardi (avv.)", "spät"], ["questo/-a è...", "das ist ..."], ["contento/-a", "froh, zufrieden"], ["così", "so, in der Art"], ["naturalmente (avv.)", "natürlich"], ["per ora", "derzeit, vorerst"], ["qualche volta", "manchmal"], ["di solito", "für gewöhnlich, normalerweise"], ["anzi", "vielmehr"], ["conoscere", "kennenlernen"], ["buttarsi", "sich stürzen"], ["la movida", "Nachtleben"], ["bolognese", "bolognesisch, von Bologna"], ["vengo", "ich komme"], ["però", "aber, jedoch"], ["c'è", "es gibt"], ["la maturità", "Abitur"], ["chiudere", "aufhören (ugs.)"], ["sennò", "ansonsten"], ["arrivare", "(an)kommen"], ["colloquiale", "umgangssprachlich"], ["l'entusiasmo", "Begeisterung"], ["la decisione", "Entschlossenheit"], ["l'affermazione (f.)", "Aussage"], ["ex", "ehemalig"], ["il/la compagno/-a di classe", "Mitschüler/in"], ["di persona", "persönlich"], ["tipo (inv.)", "typisch"], ["la giornata", "Tag"], ["tirare il dado", "würfeln"], ["il dado", "Würfel"], ["la frequenza", "Häufigkeit"], ["lo schema", "Schema"], ["più sotto", "weiter unten"], ["prima di", "vor"], ["entrambi/-e", "beide"], ["la posizione", "Position"], ["notare", "(be)merken"], ["a proposito di", "bezüglich"], ["correggere", "korrigieren"], ["il locale", "Lokal"], ["raccogliere", "sammeln"], ["il riassunto", "Zusammenfassung"], ["confrontarsi", "vergleichen"], ["aspettare", "warten (auf)"], ["classico/-a", "klassisch"], ["negato/-a", "unbegabt"], ["il basket", "Basketball"], ["il calcio", "Fußball"], ["il videogioco", "Computerspiel"], ["la serie", "Serie"], ["televisivo/-a", "Fernseh-"], ["moltissimo", "sehr"], ["per niente", "überhaupt nicht"], ["niente", "nichts"], ["il tempo libero", "Freizeit"], ["in base a", "gemäß"], ["la categoria", "Kategorie"], ["la possibilità", "Möglichkeit"], ["lo yoga [ˈiɔːga]", "Yoga"], ["il film", "Film"], ["l'abitudine (f.)", "Gewohnheit"], ["il gusto", "Geschmack"], ["stabilire (-isc-)", "festlegen"], ["il mezzo", "Mittel"], ["la comunicazione", "Kommunikation"], ["il cartellone", "Plakat"], ["la base", "Grundlage"], ["individualmente (avv.)", "individuell"], ["mettere", "setzen"], ["la descrizione", "Beschreibung"], ["il campo", "Feld"], ["vicino/-a", "nah"], ["la preferenza", "Vorliebe"], ["con cui", "mit denen"], ["la soft skill", "Soft Skill"], ["durante", "während (+ Substantiv)"], ["il luogo", "Ort"], ["il calendario", "Kalender"], ["realizzare", "erstellen"], ["condividere", "teilen"], ["commentare", "kommentieren"], ["il commento", "Kommentar"], ["entro", "bis zu"], ["la data", "Datum"], ["aiutare", "helfen"], ["quotidiano/-a", "täglich"], ["sistematico/-a", "systematisch"], ["possiamo", "wir können"], ["il vocabolo", "Vokabel"], ["la strategia", "Strategie"], ["la ricerca", "Recherche"], ["prendere nota", "notieren, sich Notizen machen"], ["la nota", "Notiz"], ["lo spazio", "Raum"], ["virtuale", "virtuell"], ["lavarsi i denti", "sich die Zähne putzen"], ["lavarsi", "sich waschen"], ["il dente", "Zahn"], ["il capello", "Haar (Kopf)"], ["truccarsi", "sich schminken"], ["farsi la barba", "sich rasieren"], ["la barba", "Bart"], ["rilassarsi", "sich entspannen"], ["addormentarsi", "einschlafen"], ["mettersi", "sich etw. anziehen"], ["la scarpa", "Schuh"], ["combinare", "kombinieren"], ["la combinazione", "Kombination"], ["prendere in prestito", "sich ausleihen"], ["il prestito", "Ausleihe"], ["cantare", "singen"], ["iscriversi", "sich einschreiben"], ["il coro", "Chor"], ["l'orchestra", "Orchester"], ["l'associazione (f.)", "Vereinigung, Verein"], ["studentesco/-a", "studentisch"], ["il centro", "Zentrum"], ["sportivo/-a", "Sport-"], ["l'appunto", "Notiz, Mitschrift"], ["la conferenza", "Konferenz"], ["il concerto", "Konzert"], ["prendere appunti", "Notizen machen"], ["l'ordine (m.)", "Ordnung; Reihenfolge"], ["costruire (-isc-)", "aufbauen"], ["il più importante", "das Wichtigste"], ["laurearsi", "den Hochschulabschluss erwerben"], ["l'esercizio", "Übung"], ["personalizzare", "personalisieren"], ["concentrarsi", "sich konzentrieren"], ["soprattutto", "vor allem"], ["il laboratorio", "Labor"], ["teatrale", "Theater-"], ["recitare", "spielen (Theater, Film)"], ["lo spettacolo", "Schauspiel, Vorstellung"], ["la band", "Band (Musik)"], ["la carta", "Karte (Spiel)"], ["il tennis", "Tennis"], ["il sassofono", "Saxophon"], ["la fine", "Ende"], ["l'approfondimento", "Vertiefung"], ["l'intervista", "Interview"], ["significare", "bedeuten"], ["discutere", "diskutieren"], ["eventualmente (avv.)", "eventuell"], ["fare amicizia", "Freundschaft schließen"], ["l'amicizia", "Freundschaft"], ["da solo/-a", "allein"], ["partecipare (a)", "teilnehmen (an)"], ["più volte", "mehrmals"], ["trovarsi", "sich fühlen"], ["consigliare", "empfehlen"], ["intero/-a", "ganz"], ["corrispondere", "entsprechen"], ["l'italiano/-a", "Italiener/in"], ["il foglietto", "Zettel"], ["in totale", "insgesamt"], ["il punteggio", "Punktezahl"], ["contro", "gegen"], ["unire (-isc-)", "zusammenlegen"], ["il mazzo", "Stapel"], ["a piacere", "nach Belieben"], ["correttamente (avv.)", "korrekt"], ["guadagnare", "gewinnen"], ["sicuro/-a", "sicher"], ["vincere", "gewinnen"]];
+var SEED_N2=[["A Perugia? Se vuoi, ci andiamo!", "Nach Perugia? Wenn du willst, fahren wir dorthin!"], ["ci", "dort(hin)"], ["andare", "fahren"], ["scegliendo", "indem Sie wählen / ihr wählt"], ["moderno/-a", "modern"], ["pulito/-a", "sauber"], ["caotico/-a", "chaotisch"], ["grande", "groß"], ["antico/-a", "antik, alt"], ["storico/-a", "historisch"], ["sporco/-a", "schmutzig"], ["tranquillo/-a", "ruhig"], ["brutto/-a", "hässlich"], ["verde", "grün"], ["industriale", "Industrie-, industriell"], ["turistico/-a", "touristisch"], ["multiculturale", "multikulturell"], ["lo/la straniero/-a", "Ausländer/in"], ["descrivere", "beschreiben"], ["il significato", "Bedeutung"], ["aiutarsi", "sich behelfen"], ["la cartina", "Stadtplan"], ["la farmacia", "Apotheke"], ["la libreria", "Buchhandlung"], ["il museo", "Museum"], ["l'ospedale (m.)", "Krankenhaus"], ["la fontana", "Brunnen"]];
+var SEEDS=[['unita0',SEED_UNITA0],['unita0-2',SEED_UNITA0_2],['unita1-1',SEED_3],['unita1-2',SEED_4],['unita1-3',SEED_5],['unita1-4',SEED_6],['unita1-5',SEED_N0],['unita2-1',SEED_N1],['unita3-1',SEED_N2]];
+var state={cards:[],dir:'fw',seeded:[]};
+
+var WINDOW=30;
+var UNIT_BY_N=[],UMAX={};
+(function(){
+  var off=0;
+  SEEDS.forEach(function(s){
+    s[1].forEach(function(r,i){
+      var u=(s[0]==='unita1-1')?(i<6?0:1):parseInt(/^unita(\d+)/.exec(s[0])[1],10);
+      UNIT_BY_N[off+i]=u;UMAX[u]=off+i;
+    });
+    off+=s[1].length;
+  });
+})();
+var DIRS=['fw','bw'];
+function curDirs(){return state.dir==='mix'?['fw','bw']:[state.dir];}
+function newCard(f,b,n,rel){
+  return {id:uid(),f:f,b:b,n:n,k:{fw:{b:1,d:today(),r:rel},bw:{b:1,d:today(),r:rel}}};
+}
+function dueEntries(){
+  var out=[];
+  state.cards.forEach(function(c){curDirs().forEach(function(d){var s=c.k[d];if(s.r&&s.d<=today())out.push({c:c,d:d});});});
+  out.sort(function(x,y){
+    var a=x.c.n===null?1e9:x.c.n,b=y.c.n===null?1e9:y.c.n;
+    return a!==b?a-b:(x.d==='fw'?0:1)-(y.d==='fw'?0:1);
+  });
+  return out;
+}
+function topUp(){
+  DIRS.forEach(function(d){
+    var cnt=state.cards.filter(function(c){return c.k[d].r&&c.k[d].b===1;}).length;
+    if(cnt>=WINDOW)return;
+    var wait=state.cards.filter(function(c){return !c.k[d].r;}).sort(function(a,b){return a.n-b.n;});
+    for(var i=0;i<wait.length&&cnt<WINDOW;i++){var s=wait[i].k[d];s.r=true;s.b=1;s.d=today();cnt++;}
+  });
+}
+function load(){
+  try{var s=JSON.parse(localStorage.getItem(KEY));if(s&&Array.isArray(s.cards))state=s;}catch(e){}
+  if(!state.dir)state.dir='fw';
+  if(!Array.isArray(state.seeded))state.seeded=[];
+  state.cards.forEach(function(c){c.b=String(c.b).replace(/^hier:\s*/i,'');});
+  var nmap={},cnt=0;
+  SEEDS.forEach(function(s){s[1].forEach(function(r){var k=r[0]+'|'+r[1];if(!(k in nmap))nmap[k]=cnt;cnt++;});});
+  state.cards.forEach(function(c){
+    if(c.n===undefined){var k=c.f+'|'+c.b;c.n=(k in nmap)?nmap[k]:null;}
+    if(!c.k){
+      var rel=(c.rel!==undefined)?c.rel:((c.n===null)||c.box>1||c.r3===true);
+      c.k={fw:{b:c.box||1,d:c.due||today(),r:rel},bw:{b:1,d:today(),r:c.n===null}};
+      delete c.box;delete c.due;delete c.rel;delete c.r3;delete c.u;
+    }
+  });
+  var off=0;
+  SEEDS.forEach(function(s){
+    if(state.seeded.indexOf(s[0])<0){
+      s[1].forEach(function(r,i){state.cards.push(newCard(r[0],r[1],off+i,false));});
+      state.seeded.push(s[0]);
+    }
+    off+=s[1].length;
+  });
+  topUp();
+  save();
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function pad(n){return n<10?'0'+n:''+n;}
+function fmt(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function today(){return fmt(new Date());}
+function inDays(n){var d=new Date();d.setDate(d.getDate()+n);return fmt(d);}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function isDue(c){return c.due<=today();}
+
+/* Tabs */
+var tabs=document.querySelectorAll('.tab');
+tabs.forEach(function(t){t.onclick=function(){
+  tabs.forEach(function(x){x.classList.toggle('on',x===t);});
+  document.querySelectorAll('.view').forEach(function(v){v.classList.toggle('on',v.id==='v-'+t.dataset.v);});
+  $('add').style.visibility=(t.dataset.v==='words')?'visible':'hidden';
+  render();
+};});
+
+/* Home */
+function renderHome(){
+  var h='',dirs=curDirs(),dueSet=dueEntries();
+  for(var b=1;b<=5;b++){
+    var all=0;
+    state.cards.forEach(function(c){dirs.forEach(function(d){if(c.k[d].r&&c.k[d].b===b)all++;});});
+    var due=dueSet.filter(function(x){return x.c.k[x.d].b===b;}).length;
+    h+='<div class="box"><span>Fach '+b+'</span><b>'+all+'</b><i>'+(due?due+' fällig':'')+'</i></div>';
+  }
+  $('boxes').innerHTML=h;
+  document.querySelectorAll('#dir button').forEach(function(b){b.classList.toggle('on',b.dataset.d===state.dir);});
+  var ids={};dueSet.forEach(function(x){ids[x.c.id]=1;});
+  var due=Object.keys(ids).length;
+  $('start').disabled=!due;
+  $('start').textContent=due?'Lernen starten ('+due+')':'Nichts fällig';
+  var wait=0;
+  dirs.forEach(function(d){wait=Math.max(wait,state.cards.filter(function(c){return !c.k[d].r;}).length);});
+  var msg=wait?' Noch '+wait+' Vokabeln warten auf Freischaltung.':'';
+  $('homeNote').textContent=(state.cards.length?(due?'':'Alles erledigt für heute.'):'Lege zuerst im Tab „Vokabeln“ Karten an.')+msg;
+}
+document.querySelectorAll('#dir button').forEach(function(b){b.onclick=function(){state.dir=b.dataset.d;save();renderHome();};});
+
+/* Vokabelliste */
+function renderWords(){
+  var q=$('q').value.trim().toLowerCase();
+  var cs=state.cards.filter(function(c){return !q||c.f.toLowerCase().indexOf(q)>-1||c.b.toLowerCase().indexOf(q)>-1;});
+  cs.sort(function(a,b){return a.f.localeCompare(b.f,'de');});
+  if(!cs.length){$('list').innerHTML='<div class="empty">'+(state.cards.length?'Keine Treffer':'Noch keine Vokabeln')+'</div>';return;}
+  $('list').innerHTML=cs.map(function(c){
+    return '<div class="item" data-id="'+c.id+'"><div class="t"><div>'+esc(c.f)+'</div><div><small>'+esc(c.b)+'</small></div></div><span class="badge">W→Ü '+(c.k.fw.r?c.k.fw.b:'–')+'<br>Ü→W '+(c.k.bw.r?c.k.bw.b:'–')+'</span></div>';
+  }).join('');
+}
+$('q').oninput=renderWords;
+$('list').onclick=function(e){
+  var it=e.target.closest('.item');if(!it)return;
+  var c=state.cards.filter(function(x){return x.id===it.dataset.id;})[0];
+  if(c)editSheet(c);
+};
+function render(){renderHome();renderWords();}
+
+/* Sheet */
+function openSheet(html){$('sheetBox').innerHTML=html;$('sheet').classList.add('on');}
+function closeSheet(){$('sheet').classList.remove('on');$('sheetBox').innerHTML='';}
+$('sheet').onclick=function(e){if(e.target===$('sheet'))closeSheet();};
+
+function editSheet(c){
+  var neu=!c;
+  openSheet('<h2>'+(neu?'Neue Vokabel':'Vokabel bearbeiten')+'</h2>'
+    +'<input id="sf" placeholder="Wort" autocomplete="off" autocapitalize="none" value="'+(neu?'':esc(c.f))+'">'
+    +'<input id="sb" placeholder="Übersetzung" autocomplete="off" autocapitalize="none" value="'+(neu?'':esc(c.b))+'">'
+    +'<div class="row"><button class="btn sec" id="sc">Abbrechen</button><button class="btn" id="ss">'+(neu?'Hinzufügen':'Sichern')+'</button></div>'
+    +(neu?'':'<div style="height:10px"></div><button class="btn red" id="sd">Löschen</button>'));
+  $('sc').onclick=closeSheet;
+  $('ss').onclick=function(){
+    var f=$('sf').value.trim(),b=$('sb').value.trim();
+    if(!f||!b){(f?$('sb'):$('sf')).focus();return;}
+    if(neu){state.cards.push(newCard(f,b,null,true));}
+    else{c.f=f;c.b=b;}
+    save();closeSheet();render();
+    if(neu)editSheet(null); // direkt die nächste anlegen
+  };
+  if(!neu)$('sd').onclick=function(){
+    if(confirm('Vokabel löschen?')){state.cards=state.cards.filter(function(x){return x!==c;});save();closeSheet();render();}
+  };
+  setTimeout(function(){var i=$('sf');if(i)i.focus();},50);
+}
+$('add').onclick=function(){editSheet(null);};
+
+/* Import / Export */
+function parseTable(text){
+  text=text.replace(/^﻿/,'');
+  var first=(text.split(/\r?\n/).filter(function(l){return l.trim();})[0])||'';
+  var delim=first.indexOf('\t')>-1?'\t':first.indexOf(';')>-1?';':first.indexOf('=')>-1?'=':',';
+  var rows=[],row=[],cell='',q=false;
+  for(var i=0;i<text.length;i++){
+    var ch=text[i];
+    if(q){
+      if(ch==='"'){if(text[i+1]==='"'){cell+='"';i++;}else q=false;}
+      else cell+=ch;
+    }else if(ch==='"'&&cell===''){q=true;}
+    else if(ch===delim){row.push(cell);cell='';}
+    else if(ch==='\n'||ch==='\r'){
+      if(ch==='\r'&&text[i+1]==='\n')i++;
+      row.push(cell);cell='';rows.push(row);row=[];
+    }else cell+=ch;
+  }
+  if(cell!==''||row.length){row.push(cell);rows.push(row);}
+  return rows.filter(function(r){return r.length>1&&(r[0]||'').trim()&&(r[1]||'').trim();});
+}
+function importText(text){
+  var rows=parseTable(text);
+  if(rows.length){ // Kopfzeile überspringen
+    var a=rows[0][0].trim().toLowerCase(),b=rows[0][1].trim().toLowerCase();
+    if(/^(wort|vokabel|begriff|vorderseite|word|italienisch)$/.test(a)&&/^(übersetzung|ubersetzung|deutsch|rückseite|translation)$/.test(b))rows.shift();
+  }
+  var have={};
+  state.cards.forEach(function(c){have[c.f.toLowerCase()+'|'+c.b.toLowerCase()]=1;});
+  var added=0,dup=0;
+  rows.forEach(function(r){
+    var f=r[0].trim(),b=r[1].trim().replace(/^hier:\s*/i,'');
+    if(!f||!b)return;
+    var k=f.toLowerCase()+'|'+b.toLowerCase();
+    if(have[k]){dup++;return;}
+    have[k]=1;
+    state.imp=(state.imp||0)+1;
+    state.cards.push(newCard(f,b,1000+state.imp,false)); // hinten anstellen, rückt nach
+    added++;
+  });
+  topUp();save();render();
+  return {added:added,dup:dup};
+}
+function decode(buf){
+  try{return new TextDecoder('utf-8',{fatal:true}).decode(buf);}
+  catch(e){return new TextDecoder('windows-1252').decode(buf);}
+}
+function openImport(){
+  openSheet('<h2>Importieren</h2>'
+    +'<label class="btn sec" style="text-align:center;margin-bottom:10px">CSV-Datei wählen<input type="file" id="ifile" accept=".csv,.txt,text/csv,text/plain" style="display:none"></label>'
+    +'<p class="note">Oder Text einfügen: eine Vokabel pro Zeile, Wort und Übersetzung getrennt durch Semikolon, Komma, Tabulator oder „=“. Weitere Spalten werden ignoriert, eine Kopfzeile wird übersprungen.</p>'
+    +'<textarea id="it" placeholder="haus;house&#10;Hund;dog" autocapitalize="none"></textarea>'
+    +'<div class="row"><button class="btn sec" id="ic">Abbrechen</button><button class="btn" id="ii">Importieren</button></div>');
+  $('ic').onclick=closeSheet;
+  $('ifile').onchange=function(){
+    var f=this.files&&this.files[0];if(!f)return;
+    var rd=new FileReader();
+    rd.onload=function(){$('it').value=decode(rd.result);};
+    rd.readAsArrayBuffer(f);
+  };
+  $('ii').onclick=function(){
+    var r=importText($('it').value);
+    closeSheet();
+    alert(r.added?r.added+' neue Vokabeln importiert'+(r.dup?', '+r.dup+' schon vorhanden.':'.'):(r.dup?'Alle '+r.dup+' Vokabeln sind schon vorhanden.':'Keine gültigen Zeilen gefunden.'));
+  };
+};
+function exportCsv(){
+  if(!state.cards.length){alert('Keine Vokabeln vorhanden.');return;}
+  var csv='Wort;Übersetzung;Fach W→Ü;Fällig W→Ü;Fach Ü→W;Fällig Ü→W\n'+state.cards.map(function(c){
+    return [c.f,c.b,c.k.fw.b,c.k.fw.d,c.k.bw.b,c.k.bw.d].map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join(';');
+  }).join('\n');
+  saveFile('vokabeln.csv','text/csv','\ufeff'+csv);
+};
+function saveFile(name,type,content){
+  var file=null;
+  try{file=new File([content],name,{type:type});}catch(e){}
+  if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
+    navigator.share({files:[file]}).catch(function(){});
+    return;
+  }
+  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type:type}));a.download=name;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+function backupSave(){saveFile('vokabeln-sicherung-'+today()+'.json','application/json',JSON.stringify(state));}
+function backupLoad(f){
+  var rd=new FileReader();
+  rd.onload=function(){
+    var d=null;
+    try{d=JSON.parse(decode(rd.result));}catch(e){}
+    if(!d||!Array.isArray(d.cards)||!d.cards.every(function(c){return c&&typeof c.f==='string'&&typeof c.b==='string';})){alert('Das ist keine gültige Sicherung.');return;}
+    if(!confirm('Aktuellen Stand durch die Sicherung ersetzen? ('+d.cards.length+' Karten)'))return;
+    try{localStorage.setItem(KEY,JSON.stringify(d));}catch(e){}
+    load();render();
+    alert('Sicherung geladen.');
+  };
+  rd.readAsArrayBuffer(f);
+}
+function toggleMenu(on){$('menu').style.display=on?'block':'none';$('menuBg').style.display=on?'block':'none';}
+$('more').onclick=function(){toggleMenu($('menu').style.display!=='block');};
+$('menuBg').onclick=function(){toggleMenu(false);};
+function choiceSheet(title,lernstandFile){
+  openSheet('<h2>'+title+'</h2>'
+    +'<button class="btn" id="c-csv">CSV</button><div style="height:10px"></div>'
+    +(lernstandFile
+      ?'<label class="btn" style="text-align:center">Lernstand<input type="file" id="bfile" accept=".json,application/json,text/plain" style="display:none"></label>'
+      :'<button class="btn" id="c-lern">Lernstand</button>')
+    +'<div style="height:10px"></div><button class="btn sec" id="c-x">Abbrechen</button>');
+  $('c-x').onclick=closeSheet;
+}
+$('m-imp').onclick=function(){
+  toggleMenu(false);
+  choiceSheet('Importieren',true);
+  $('c-csv').onclick=function(){closeSheet();openImport();};
+  $('bfile').onchange=function(){var f=this.files&&this.files[0];closeSheet();if(f)backupLoad(f);};
+};
+$('m-exp').onclick=function(){
+  toggleMenu(false);
+  choiceSheet('Exportieren',false);
+  $('c-csv').onclick=function(){closeSheet();exportCsv();};
+  $('c-lern').onclick=function(){closeSheet();backupSave();};
+};
+$('reset').onclick=function(){
+  if(!state.cards.length)return;
+  if(confirm('Alle Karten zurück in Fach 1 legen?')){
+    state.cards.forEach(function(c){DIRS.forEach(function(d){var s=c.k[d];s.b=1;s.d=today();if(c.n!==null)s.r=false;});});topUp();save();render();
+  }
+};
+
+/* Lernen */
+var S=null;
+$('start').onclick=function(){
+  var due=dueEntries();if(!due.length)return;
+  var by={},pick=[];
+  due.forEach(function(x){(by[x.c.id]=by[x.c.id]||[]).push(x);});
+  due.forEach(function(x){var l=by[x.c.id];if(l){pick.push(l[Math.floor(Math.random()*l.length)]);by[x.c.id]=null;}});
+  due=pick;
+  S={hist:[],queue:due.map(function(x){return{c:x.c,d:x.d,retry:false,rev:x.d==='bw'};}),total:due.length,done:0,right:0,flipped:false};
+  $('learn').classList.add('on');
+  showCard();
+};
+$('lend').onclick=function(){$('learn').classList.remove('on');S=null;render();};
+
+function showCard(){
+  var body=$('lbody');
+  $('lundo').style.visibility=S.hist.length?'visible':'hidden';
+  $('lbar').style.width=(S.total?S.done/S.total*100:0)+'%';
+  $('lcount').textContent=Math.min(S.done+1,S.total)+' / '+S.total;
+  if(!S.queue.length){
+    $('lcount').textContent='';
+    body.innerHTML='<div class="done"><div class="big">🎉</div><h2 style="margin:0">Geschafft!</h2>'
+      +'<div style="color:#8e8e93">'+S.right+' von '+S.total+' gewusst</div></div>'
+      +'<div class="lbtns"><button class="btn" id="fin">Fertig</button></div>';
+    $('fin').onclick=$('lend').onclick;
+    return;
+  }
+  var it=S.queue[0];S.flipped=false;
+  var q=it.rev?it.c.b:it.c.f;
+  body.innerHTML='<div class="flash" id="fl"><div class="q">'+esc(q)+'</div><div class="hint">Zum Umdrehen tippen</div></div>'
+    +'<div class="lbtns" id="lb"></div><button class="skip" id="sk">Unwichtig</button>';
+  $('fl').onclick=flip;
+  $('sk').onclick=markUnimportant;
+}
+function flip(){
+  if(S.flipped)return;S.flipped=true;
+  var it=S.queue[0],a=it.rev?it.c.f:it.c.b;
+  var fl=$('fl');
+  fl.innerHTML='<div class="q">'+esc(it.rev?it.c.b:it.c.f)+'</div><div class="a">'+esc(a)+'</div>';
+  $('lb').innerHTML='<button class="btn no" id="no">Nicht gewusst</button><button class="btn yes" id="yes">Gewusst</button>';
+  $('no').onclick=function(){answer(false);};
+  $('yes').onclick=function(){answer(true);};
+}
+function answer(ok){
+  var it=S.queue.shift(),s=it.c.k[it.d];
+  S.hist.push({it:it,b:s.b,d:s.d,ok:ok,done:S.done,right:S.right});
+  if(ok){
+    s.b=Math.min(5,s.b+1); // Fach hoch
+    s.d=inDays(INTERVALS[s.b]);
+    S.right++;
+  }else{
+    s.b=1;s.d=inDays(1); // zurück in Fach 1, erst morgen wieder
+  }
+  S.done++;
+  topUp();save();showCard();
+}
+function markUnimportant(){
+  if(!S||!S.queue.length)return;
+  var c=S.queue[0].c;
+  var snap={c:c,n:c.n,k:JSON.parse(JSON.stringify(c.k)),seq:state.seq};
+  var removed=[],rest=[];
+  S.queue.forEach(function(x){(x.c===c?removed:rest).push(x);});
+  S.queue=rest;S.total-=removed.length;
+  var un=(c.n===null)?undefined:UNIT_BY_N[Math.floor(c.n)];
+  var base=(un===undefined)?1e6:UMAX[un]+0.5;
+  state.seq=(state.seq||0)+1;
+  c.n=base+state.seq*1e-6;
+  DIRS.forEach(function(d){var s=c.k[d];s.r=false;s.b=1;s.d=today();});
+  var waiting=[];
+  state.cards.forEach(function(x){DIRS.forEach(function(d){if(!x.k[d].r)waiting.push([x,d]);});});
+  topUp();
+  var newly=waiting.filter(function(w){return w[0]!==c&&w[0].k[w[1]].r;});
+  S.hist.push({skip:true,snap:snap,removed:removed,newly:newly});
+  save();showCard();
+}
+function undo(){
+  var x=S&&S.hist.pop();if(!x)return;
+  if(x.skip){
+    var c=x.snap.c;
+    c.n=x.snap.n;c.k=x.snap.k;state.seq=x.snap.seq;
+    x.newly.forEach(function(w){w[0].k[w[1]].r=false;});
+    S.total+=x.removed.length;S.queue=x.removed.concat(S.queue);
+    save();showCard();flip();return;
+  }
+  var it=x.it,s=it.c.k[it.d];
+  s.b=x.b;s.d=x.d;S.done=x.done;S.right=x.right;
+  S.queue.unshift(it);
+  save();showCard();flip();
+}
+$('lundo').onclick=undo;
+
+load();render();
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
+})();
+</script>
+</body>
+</html>

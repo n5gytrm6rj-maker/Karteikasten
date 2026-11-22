@@ -167,7 +167,7 @@ var SEED_N2=[["A Perugia? Se vuoi, ci andiamo!", "Nach Perugia? Wenn du willst, 
 var SEEDS=[['unita0',SEED_UNITA0],['unita0-2',SEED_UNITA0_2],['unita1-1',SEED_3],['unita1-2',SEED_4],['unita1-3',SEED_5],['unita1-4',SEED_6],['unita1-5',SEED_N0],['unita2-1',SEED_N1],['unita3-1',SEED_N2]];
 var state={cards:[],dir:'fw',seeded:[]};
 
-var APP_VERSION='1.0.2';
+var APP_VERSION='1.0.3';
 var WINDOW=30;
 var UNIT_BY_N=[],UMAX={};
 (function(){
@@ -276,10 +276,14 @@ function renderHome(){
   $('start').disabled=!due;
   $('start').textContent=due?'Lernen starten ('+due+')':'Nichts fällig';
   var avail=0;
-  dirs.forEach(function(d){avail+=Math.min(WINDOW,state.cards.filter(function(c){return !c.k[d].r;}).length);});
+  dirs.forEach(function(d){
+    var in1=state.cards.filter(function(c){return c.k[d].r&&c.k[d].b===1;}).length;
+    avail+=Math.max(0,WINDOW-in1)>0?Math.min(Math.max(0,WINDOW-in1),state.cards.filter(function(c){return !c.k[d].r;}).length):0;
+    avail+=in1;
+  });
   var m=$('more30');
   m.style.display=(!due&&avail)?'block':'none';
-  m.textContent='Nächste '+WINDOW+' Vokabeln jetzt freischalten';
+  m.textContent='Fach 1 jetzt auffüllen ('+WINDOW+')';
   var wait=0;
   dirs.forEach(function(d){wait=Math.max(wait,state.cards.filter(function(c){return !c.k[d].r;}).length);});
   var msg=wait?' Noch '+wait+' Vokabeln warten auf Freischaltung.':'';
@@ -287,8 +291,10 @@ function renderHome(){
 }
 $('more30').onclick=function(){
   curDirs().forEach(function(d){
+    var cnt=0;
+    state.cards.forEach(function(c){var s=c.k[d];if(s.r&&s.b===1){s.d=today();cnt++;}});
     var wait=state.cards.filter(function(c){return !c.k[d].r;}).sort(function(a,b){return a.n-b.n;});
-    for(var i=0;i<wait.length&&i<WINDOW;i++){var s=wait[i].k[d];s.r=true;s.b=1;s.d=today();}
+    for(var i=0;i<wait.length&&cnt<WINDOW;i++){var s=wait[i].k[d];s.r=true;s.b=1;s.d=today();cnt++;}
   });
   save();render();
 };

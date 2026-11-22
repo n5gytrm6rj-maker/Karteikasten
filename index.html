@@ -182,7 +182,7 @@ function newCard(f,b,n,rel){
 }
 function dueEntries(){
   var out=[];
-  state.cards.forEach(function(c){curDirs().forEach(function(d){var s=c.k[d];if(s.r&&s.d<=today())out.push({c:c,d:d});});});
+  state.cards.forEach(function(c){curDirs().forEach(function(d){var s=c.k[d];if(s.r&&s.d<=nowStr())out.push({c:c,d:d});});});
   out.sort(function(x,y){
     var a=x.c.n===null?1e9:x.c.n,b=y.c.n===null?1e9:y.c.n;
     return a!==b?a-b:(x.d==='fw'?0:1)-(y.d==='fw'?0:1);
@@ -206,6 +206,7 @@ function load(){
   SEEDS.forEach(function(s){s[1].forEach(function(r){var k=r[0]+'|'+r[1];if(!(k in nmap))nmap[k]=cnt;cnt++;});});
   state.cards.forEach(function(c){
     if(c.n===undefined){var k=c.f+'|'+c.b;c.n=(k in nmap)?nmap[k]:null;}
+    if(c.unw===undefined)c.unw=(c.n!==null&&c.n!==Math.floor(c.n))?1:0;
     if(!c.k){
       var rel=(c.rel!==undefined)?c.rel:((c.n===null)||c.box>1||c.r3===true);
       c.k={fw:{b:c.box||1,d:c.due||today(),r:rel},bw:{b:1,d:today(),r:c.n===null}};
@@ -232,7 +233,16 @@ function today(){return fmt(new Date());}
 function inDays(n){var d=new Date();d.setDate(d.getDate()+n);return fmt(d);}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
 function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
-function isDue(c){return c.due<=today();}
+function nowStr(){var d=new Date();return fmt(d)+'T'+pad(d.getHours())+':'+pad(d.getMinutes());}
+function nextDueText(){
+  var best=null;
+  state.cards.forEach(function(c){curDirs().forEach(function(d){var s=c.k[d];if(s.r&&(best===null||s.d<best))best=s.d;});});
+  if(!best)return '';
+  var day=best.slice(0,10),t=best.length>10?best.slice(11,16):'';
+  var tm=new Date();tm.setDate(tm.getDate()+1);
+  var when=day===today()?'heute':day===fmt(tm)?'morgen':day.slice(8,10)+'.'+day.slice(5,7)+'.';
+  return ' Nächste Karten: '+when+(t&&day===today()?' ab '+t:'')+'.';
+}
 
 /* Tabs */
 var tabs=document.querySelectorAll('.tab');
@@ -261,7 +271,7 @@ function renderHome(){
   var wait=0;
   dirs.forEach(function(d){wait=Math.max(wait,state.cards.filter(function(c){return !c.k[d].r;}).length);});
   var msg=wait?' Noch '+wait+' Vokabeln warten auf Freischaltung.':'';
-  $('homeNote').textContent=(state.cards.length?(due?'':'Alles erledigt für heute.'):'Lege zuerst im Tab „Vokabeln“ Karten an.')+msg;
+  $('homeNote').textContent=(state.cards.length?(due?'':'Alles erledigt für heute.'+nextDueText()):'Lege zuerst im Tab „Vokabeln“ Karten an.')+msg;
 }
 document.querySelectorAll('#dir button').forEach(function(b){b.onclick=function(){state.dir=b.dataset.d;save();renderHome();};});
 
@@ -471,6 +481,7 @@ function showCard(){
   body.innerHTML='<div class="flash" id="fl"><div class="q">'+esc(q)+'</div><div class="hint">Zum Umdrehen tippen</div></div>'
     +'<div class="lbtns" id="lb"></div><button class="skip" id="sk">Unwichtig</button>';
   $('fl').onclick=flip;
+  $('sk').textContent=(it.c.unw>=1)?'Unwichtig · Karte löschen':'Unwichtig';
   $('sk').onclick=markUnimportant;
 }
 function flip(){
@@ -490,7 +501,7 @@ function answer(ok){
     s.d=inDays(INTERVALS[s.b]);
     S.right++;
   }else{
-    s.b=1;s.d=inDays(1); // zurück in Fach 1, erst morgen wieder
+    s.b=1;s.d=today(); // zurück in Fach 1, sofort wieder fällig (in der nächsten Session)
   }
   S.done++;
   topUp();save();showCard();
@@ -498,10 +509,21 @@ function answer(ok){
 function markUnimportant(){
   if(!S||!S.queue.length)return;
   var c=S.queue[0].c;
-  var snap={c:c,n:c.n,k:JSON.parse(JSON.stringify(c.k)),seq:state.seq};
+  var snap={c:c,n:c.n,k:JSON.parse(JSON.stringify(c.k)),seq:state.seq,unw:c.unw||0};
   var removed=[],rest=[];
   S.queue.forEach(function(x){(x.c===c?removed:rest).push(x);});
   S.queue=rest;S.total-=removed.length;
+  if((c.unw||0)>=1){ // zum zweiten Mal unwichtig: Karte löschen
+    var idx=state.cards.indexOf(c);
+    if(idx>-1)state.cards.splice(idx,1);
+    var waiting0=[];
+    state.cards.forEach(function(x){DIRS.forEach(function(d){if(!x.k[d].r)waiting0.push([x,d]);});});
+    topUp();
+    var newly0=waiting0.filter(function(w){return w[0].k[w[1]].r;});
+    S.hist.push({skip:true,del:true,idx:idx,snap:snap,removed:removed,newly:newly0});
+    save();showCard();return;
+  }
+  c.unw=1;
   var un=(c.n===null)?undefined:UNIT_BY_N[Math.floor(c.n)];
   var base=(un===undefined)?1e6:UMAX[un]+0.5;
   state.seq=(state.seq||0)+1;
@@ -518,7 +540,8 @@ function undo(){
   var x=S&&S.hist.pop();if(!x)return;
   if(x.skip){
     var c=x.snap.c;
-    c.n=x.snap.n;c.k=x.snap.k;state.seq=x.snap.seq;
+    if(x.del)state.cards.splice(Math.min(x.idx,state.cards.length),0,c);
+    c.n=x.snap.n;c.k=x.snap.k;state.seq=x.snap.seq;c.unw=x.snap.unw;
     x.newly.forEach(function(w){w[0].k[w[1]].r=false;});
     S.total+=x.removed.length;S.queue=x.removed.concat(S.queue);
     save();showCard();flip();return;

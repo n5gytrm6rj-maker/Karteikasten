@@ -41,6 +41,8 @@ h1{font-size:32px;margin:6px 0 14px;font-weight:700;letter-spacing:-.5px}
 .box{background:#fff;border-radius:12px;padding:10px 4px;text-align:center}
 .box b{display:block;font-size:22px}
 .box span{font-size:11px;color:#8e8e93}
+.box.act{background:#007AFF}
+.box.act span,.box.act b,.box.act i{color:#fff}
 .box i{display:block;font-style:normal;font-size:11px;color:#007AFF;min-height:14px;margin-top:2px}
 .seg{display:flex;background:#e3e3e8;border-radius:9px;padding:2px;margin-bottom:14px}
 .seg button{flex:1;border:0;background:none;border-radius:7px;padding:7px 2px;font-size:13px;color:#1c1c1e}
@@ -96,7 +98,8 @@ h1{font-size:32px;margin:6px 0 14px;font-weight:700;letter-spacing:-.5px}
 <body>
 <div id="app">
   <div id="topbar">
-    <button class="circ" id="add" aria-label="Neue Vokabel" style="visibility:hidden"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg></button>
+    <div class="lefts"><button class="circ" id="gear" aria-label="Info"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+    <button class="circ" id="add" aria-label="Neue Vokabel" style="display:none"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg></button></div>
     <button class="tile" id="more" aria-label="Mehr"><svg width="22" height="22" viewBox="0 0 22 22"><circle cx="4.5" cy="11" r="2" fill="currentColor"/><circle cx="11" cy="11" r="2" fill="currentColor"/><circle cx="17.5" cy="11" r="2" fill="currentColor"/></svg></button>
   </div>
 
@@ -109,6 +112,7 @@ h1{font-size:32px;margin:6px 0 14px;font-weight:700;letter-spacing:-.5px}
       <button data-d="mix">Beide</button>
     </div>
     <button class="btn" id="start">Lernen starten</button>
+    <button class="btn sec" id="more30" style="margin-top:10px;display:none"></button>
     <p class="note" id="homeNote" style="text-align:center;color:#8e8e93;font-size:14px;margin-top:12px"></p>
   </div>
 
@@ -163,6 +167,7 @@ var SEED_N2=[["A Perugia? Se vuoi, ci andiamo!", "Nach Perugia? Wenn du willst, 
 var SEEDS=[['unita0',SEED_UNITA0],['unita0-2',SEED_UNITA0_2],['unita1-1',SEED_3],['unita1-2',SEED_4],['unita1-3',SEED_5],['unita1-4',SEED_6],['unita1-5',SEED_N0],['unita2-1',SEED_N1],['unita3-1',SEED_N2]];
 var state={cards:[],dir:'fw',seeded:[]};
 
+var APP_VERSION='1.0.2';
 var WINDOW=30;
 var UNIT_BY_N=[],UMAX={};
 (function(){
@@ -249,7 +254,9 @@ var tabs=document.querySelectorAll('.tab');
 tabs.forEach(function(t){t.onclick=function(){
   tabs.forEach(function(x){x.classList.toggle('on',x===t);});
   document.querySelectorAll('.view').forEach(function(v){v.classList.toggle('on',v.id==='v-'+t.dataset.v);});
-  $('add').style.visibility=(t.dataset.v==='words')?'visible':'hidden';
+  var w=(t.dataset.v==='words');
+  $('add').style.display=w?'flex':'none';
+  $('gear').style.display=w?'none':'flex';
   render();
 };});
 
@@ -260,7 +267,7 @@ function renderHome(){
     var all=0;
     state.cards.forEach(function(c){dirs.forEach(function(d){if(c.k[d].r&&c.k[d].b===b)all++;});});
     var due=dueSet.filter(function(x){return x.c.k[x.d].b===b;}).length;
-    h+='<div class="box"><span>Fach '+b+'</span><b>'+all+'</b><i>'+(due?due+' fällig':'')+'</i></div>';
+    h+='<div class="box'+(due?' act':'')+'"><span>Fach '+b+'</span><b>'+all+'</b><i>'+(due?due+' fällig':'')+'</i></div>';
   }
   $('boxes').innerHTML=h;
   document.querySelectorAll('#dir button').forEach(function(b){b.classList.toggle('on',b.dataset.d===state.dir);});
@@ -268,11 +275,23 @@ function renderHome(){
   var due=Object.keys(ids).length;
   $('start').disabled=!due;
   $('start').textContent=due?'Lernen starten ('+due+')':'Nichts fällig';
+  var avail=0;
+  dirs.forEach(function(d){avail+=Math.min(WINDOW,state.cards.filter(function(c){return !c.k[d].r;}).length);});
+  var m=$('more30');
+  m.style.display=(!due&&avail)?'block':'none';
+  m.textContent='Nächste '+WINDOW+' Vokabeln jetzt freischalten';
   var wait=0;
   dirs.forEach(function(d){wait=Math.max(wait,state.cards.filter(function(c){return !c.k[d].r;}).length);});
   var msg=wait?' Noch '+wait+' Vokabeln warten auf Freischaltung.':'';
   $('homeNote').textContent=(state.cards.length?(due?'':'Alles erledigt für heute.'+nextDueText()):'Lege zuerst im Tab „Vokabeln“ Karten an.')+msg;
 }
+$('more30').onclick=function(){
+  curDirs().forEach(function(d){
+    var wait=state.cards.filter(function(c){return !c.k[d].r;}).sort(function(a,b){return a.n-b.n;});
+    for(var i=0;i<wait.length&&i<WINDOW;i++){var s=wait[i].k[d];s.r=true;s.b=1;s.d=today();}
+  });
+  save();render();
+};
 document.querySelectorAll('#dir button').forEach(function(b){b.onclick=function(){state.dir=b.dataset.d;save();renderHome();};});
 
 /* Vokabelliste */
@@ -419,6 +438,10 @@ function backupLoad(f){
   rd.readAsArrayBuffer(f);
 }
 function toggleMenu(on){$('menu').style.display=on?'block':'none';$('menuBg').style.display=on?'block':'none';}
+$('gear').onclick=function(){
+  openSheet('<h2>Vokabeln</h2><p style="text-align:center;color:#8e8e93;margin:0 0 16px">Version '+APP_VERSION+'</p><button class="btn sec" id="gc">Schließen</button>');
+  $('gc').onclick=closeSheet;
+};
 $('more').onclick=function(){toggleMenu($('menu').style.display!=='block');};
 $('menuBg').onclick=function(){toggleMenu(false);};
 function choiceSheet(title,lernstandFile){

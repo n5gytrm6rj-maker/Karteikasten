@@ -175,7 +175,7 @@ var SEED_N2=[["A Perugia? Se vuoi, ci andiamo!", "Nach Perugia? Wenn du willst, 
 var SEEDS=[['unita0',SEED_UNITA0],['unita0-2',SEED_UNITA0_2],['unita1-1',SEED_3],['unita1-2',SEED_4],['unita1-3',SEED_5],['unita1-4',SEED_6],['unita1-5',SEED_N0],['unita2-1',SEED_N1],['unita3-1',SEED_N2]];
 var state={cards:[],dir:'fw',seeded:[]};
 
-var APP_VERSION='1.0.17';
+var APP_VERSION='1.0.18';
 var WINDOW=30;
 var UNIT_BY_N=[],UMAX={};
 (function(){
@@ -207,7 +207,7 @@ function topUp(){
     var cnt=state.cards.filter(function(c){return c.k[d].r&&c.k[d].b===1;}).length;
     if(cnt>=WINDOW)return;
     var wait=state.cards.filter(function(c){return !c.k[d].r;}).sort(function(a,b){return a.n-b.n;});
-    for(var i=0;i<wait.length&&cnt<WINDOW;i++){var s=wait[i].k[d];s.r=true;s.b=1;s.d=today();cnt++;}
+    for(var i=0;i<wait.length&&cnt<WINDOW;i++){var s=wait[i].k[d];s.r=true;s.b=1;s.d=today();s.s=today();cnt++;}
   });
 }
 function load(){
@@ -278,7 +278,7 @@ function practicePool(){
       var s=c.k[d];
       if(!s.r)return;
       if(s.b!==1)return;
-      if(String(s.d).slice(0,10)<today())ok.push(d);
+      if(String(s.s||s.d).slice(0,10)<today())ok.push(d);
     });
     if(ok.length)out.push({c:c,d:ok[Math.floor(Math.random()*ok.length)]});
   });
@@ -326,7 +326,7 @@ $('more30').onclick=function(){
     var cnt=0;
     state.cards.forEach(function(c){var s=c.k[d];if(s.r&&s.b===1){s.d=today();cnt++;}});
     var wait=state.cards.filter(function(c){return !c.k[d].r;}).sort(function(a,b){return a.n-b.n;});
-    for(var i=0;i<wait.length&&cnt<WINDOW;i++){var s=wait[i].k[d];s.r=true;s.b=1;s.d=today();cnt++;}
+    for(var i=0;i<wait.length&&cnt<WINDOW;i++){var s=wait[i].k[d];s.r=true;s.b=1;s.d=today();s.s=today();cnt++;}
   });
   save();render();
 };
@@ -515,7 +515,7 @@ $('m-exp').onclick=function(){
 $('reset').onclick=function(){
   if(!state.cards.length)return;
   if(confirm('Alle Karten zurück in Fach 1 legen?')){
-    state.cards.forEach(function(c){DIRS.forEach(function(d){var s=c.k[d];s.b=1;s.d=today();if(c.n!==null)s.r=false;});});topUp();save();render();
+    state.cards.forEach(function(c){DIRS.forEach(function(d){var s=c.k[d];s.b=1;s.d=today();s.s=today();if(c.n!==null)s.r=false;});});topUp();save();render();
   }
 };
 
@@ -574,7 +574,7 @@ function flip(){
 }
 function answer(ok){
   var it=S.queue.shift(),s=it.c.k[it.d];
-  S.hist.push({it:it,b:s.b,d:s.d,ok:ok,done:S.done,right:S.right});
+  S.hist.push({it:it,b:s.b,d:s.d,ss:s.s,ok:ok,done:S.done,right:S.right});
   if(S.practice){
     if(ok)S.right++;
   }else if(ok){
@@ -582,6 +582,7 @@ function answer(ok){
     s.d=inDays(INTERVALS[s.b]);
     S.right++;
   }else{
+    if(s.b!==1)s.s=today();
     s.b=1;s.d=today(); // zurück in Fach 1, sofort wieder fällig (in der nächsten Session)
   }
   S.done++;
@@ -610,7 +611,7 @@ function markUnimportant(){
   var base=(un===undefined)?1e6:UMAX[un]+0.5;
   state.seq=(state.seq||0)+1;
   c.n=base+state.seq*1e-6;
-  DIRS.forEach(function(d){var s=c.k[d];s.r=false;s.b=1;s.d=today();});
+  DIRS.forEach(function(d){var s=c.k[d];s.r=false;s.b=1;s.d=today();s.s=today();});
   var waiting=[];
   state.cards.forEach(function(x){DIRS.forEach(function(d){if(!x.k[d].r)waiting.push([x,d]);});});
   topUp();
@@ -629,7 +630,7 @@ function undo(){
     save();showCard();flip();return;
   }
   var it=x.it,s=it.c.k[it.d];
-  s.b=x.b;s.d=x.d;S.done=x.done;S.right=x.right;
+  s.b=x.b;s.d=x.d;s.s=x.ss;S.done=x.done;S.right=x.right;
   S.queue.unshift(it);
   save();showCard();flip();
 }

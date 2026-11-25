@@ -27,6 +27,8 @@ h1{font-size:32px;margin:6px 0 14px;font-weight:700;letter-spacing:-.5px}
 .tile,.circ{border-radius:50%}
 .tile:active,.circ:active{background:#e5e5ea}
 .tile:active{background:#e5e5ea}
+.tile.fon{background:#007AFF;color:#fff}
+.lefts{display:flex;gap:10px}
 #menuBg{position:fixed;inset:0;z-index:40;display:none}
 #menu{position:fixed;z-index:41;display:none;top:calc(env(safe-area-inset-top) + 54px);right:16px;min-width:230px;background:rgba(255,255,255,.97);border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.22);overflow:hidden}
 #menu button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:0;background:none;padding:14px 16px;font-size:17px;color:#1c1c1e;border-bottom:1px solid #e5e5ea}
@@ -43,9 +45,13 @@ h1{font-size:32px;margin:6px 0 14px;font-weight:700;letter-spacing:-.5px}
 .box span{font-size:11px;color:#8e8e93}
 .box.act{background:#007AFF}
 .box.act span,.box.act b,.box.act i{color:#fff}
+.box.alt{box-shadow:inset 0 0 0 2px #007AFF}
+.box{cursor:pointer}
 .box i{display:block;font-style:normal;font-size:11px;color:#007AFF;min-height:14px;margin-top:2px}
 .seg{display:flex;background:#e3e3e8;border-radius:9px;padding:2px;margin-bottom:14px}
 .seg button{flex:1;border:0;background:none;border-radius:7px;padding:7px 2px;font-size:13px;color:#1c1c1e}
+.ov{display:block}
+#dir button{display:flex;align-items:center;justify-content:center;gap:3px}
 .seg button.on{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.15);font-weight:600}
 .btn{display:block;width:100%;border:0;border-radius:14px;padding:15px;background:#007AFF;color:#fff;font-weight:600}
 .btn:disabled{background:#c7c7cc}
@@ -100,18 +106,20 @@ h1{font-size:32px;margin:6px 0 14px;font-weight:700;letter-spacing:-.5px}
   <div id="topbar">
     <div class="lefts"><button class="circ" id="gear" aria-label="Info"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     <button class="circ" id="add" aria-label="Neue Vokabel" style="display:none"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg></button></div>
-    <button class="tile" id="more" aria-label="Mehr"><svg width="22" height="22" viewBox="0 0 22 22"><circle cx="4.5" cy="11" r="2" fill="currentColor"/><circle cx="11" cy="11" r="2" fill="currentColor"/><circle cx="17.5" cy="11" r="2" fill="currentColor"/></svg></button>
+    <div class="lefts"><button class="tile" id="filt" aria-label="Filter" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M7 12h10M10 17h4"/></svg></button>
+    <button class="tile" id="more" aria-label="Mehr"><svg width="22" height="22" viewBox="0 0 22 22"><circle cx="4.5" cy="11" r="2" fill="currentColor"/><circle cx="11" cy="11" r="2" fill="currentColor"/><circle cx="17.5" cy="11" r="2" fill="currentColor"/></svg></button></div>
   </div>
 
   <!-- Lernen -->
   <div class="view on" id="v-home">
     <div class="boxes" id="boxes"></div>
     <div class="seg" id="dir">
-      <button data-d="fw">Wort → Übers.</button>
-      <button data-d="bw">Übers. → Wort</button>
-      <button data-d="mix">Beide</button>
+      <button data-d="fw"><svg class="ov" width="24" height="16" viewBox="0 0 24 16"><ellipse cx="12" cy="8" rx="11.2" ry="7.2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 4.4V11.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="butt" fill="none"/></svg> → <svg class="ov" width="24" height="16" viewBox="0 0 24 16"><ellipse cx="12" cy="8" rx="11.2" ry="7.2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M9.45 4.4V11.6H10.95A3.6 3.6 0 0 0 10.95 4.4Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="miter" fill="none"/></svg></button>
+      <button data-d="bw"><svg class="ov" width="24" height="16" viewBox="0 0 24 16"><ellipse cx="12" cy="8" rx="11.2" ry="7.2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M9.45 4.4V11.6H10.95A3.6 3.6 0 0 0 10.95 4.4Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="miter" fill="none"/></svg> → <svg class="ov" width="24" height="16" viewBox="0 0 24 16"><ellipse cx="12" cy="8" rx="11.2" ry="7.2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 4.4V11.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="butt" fill="none"/></svg></button>
+      <button data-d="mix" aria-label="Beide"><svg class="ov" width="24" height="16" viewBox="0 0 24 16"><ellipse cx="12" cy="8" rx="11.2" ry="7.2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 4.4V11.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="butt" fill="none"/></svg> ⇄ <svg class="ov" width="24" height="16" viewBox="0 0 24 16"><ellipse cx="12" cy="8" rx="11.2" ry="7.2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M9.45 4.4V11.6H10.95A3.6 3.6 0 0 0 10.95 4.4Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="miter" fill="none"/></svg></button>
     </div>
-    <button class="btn" id="start">Lernen starten</button>
+    <button class="btn" id="start">Lernen</button>
+    <button class="btn sec" id="prac" style="margin-top:10px;display:none"></button>
     <button class="btn sec" id="more30" style="margin-top:10px;display:none"></button>
     <p class="note" id="homeNote" style="text-align:center;color:#8e8e93;font-size:14px;margin-top:12px"></p>
   </div>
@@ -167,7 +175,7 @@ var SEED_N2=[["A Perugia? Se vuoi, ci andiamo!", "Nach Perugia? Wenn du willst, 
 var SEEDS=[['unita0',SEED_UNITA0],['unita0-2',SEED_UNITA0_2],['unita1-1',SEED_3],['unita1-2',SEED_4],['unita1-3',SEED_5],['unita1-4',SEED_6],['unita1-5',SEED_N0],['unita2-1',SEED_N1],['unita3-1',SEED_N2]];
 var state={cards:[],dir:'fw',seeded:[]};
 
-var APP_VERSION='1.0.3';
+var APP_VERSION='1.0.17';
 var WINDOW=30;
 var UNIT_BY_N=[],UMAX={};
 (function(){
@@ -256,25 +264,43 @@ tabs.forEach(function(t){t.onclick=function(){
   document.querySelectorAll('.view').forEach(function(v){v.classList.toggle('on',v.id==='v-'+t.dataset.v);});
   var w=(t.dataset.v==='words');
   $('add').style.display=w?'flex':'none';
+  $('filt').style.display=w?'flex':'none';
   $('gear').style.display=w?'none':'flex';
   render();
 };});
 
 /* Home */
+function practicePool(){
+  var out=[],ids={};
+  state.cards.forEach(function(c){
+    var ok=[];
+    curDirs().forEach(function(d){
+      var s=c.k[d];
+      if(!s.r)return;
+      if(s.b!==1)return;
+      if(String(s.d).slice(0,10)<today())ok.push(d);
+    });
+    if(ok.length)out.push({c:c,d:ok[Math.floor(Math.random()*ok.length)]});
+  });
+  return out;
+}
 function renderHome(){
   var h='',dirs=curDirs(),dueSet=dueEntries();
   for(var b=1;b<=5;b++){
     var all=0;
     state.cards.forEach(function(c){dirs.forEach(function(d){if(c.k[d].r&&c.k[d].b===b)all++;});});
     var due=dueSet.filter(function(x){return x.c.k[x.d].b===b;}).length;
-    h+='<div class="box'+(due?' act':'')+'"><span>Fach '+b+'</span><b>'+all+'</b><i>'+(due?due+' fällig':'')+'</i></div>';
+    h+='<div class="box'+(state.fach===b?' act':'')+(due&&state.fach!==b?' alt':'')+'" data-f="'+b+'"><span>Fach '+b+'</span><b>'+all+'</b><i>'+(due?due+' fällig':'')+'</i></div>';
   }
   $('boxes').innerHTML=h;
   document.querySelectorAll('#dir button').forEach(function(b){b.classList.toggle('on',b.dataset.d===state.dir);});
-  var ids={};dueSet.forEach(function(x){ids[x.c.id]=1;});
+  var ids={};dueSet.forEach(function(x){if(!state.fach||x.c.k[x.d].b===state.fach)ids[x.c.id]=1;});
   var due=Object.keys(ids).length;
   $('start').disabled=!due;
-  $('start').textContent=due?'Lernen starten ('+due+')':'Nichts fällig';
+  $('start').textContent=due?'Lernen':'Nichts fällig';
+  var pool=practicePool();
+  $('prac').style.display=pool.length?'block':'none';
+  $('prac').textContent='Üben';
   var avail=0;
   dirs.forEach(function(d){
     var in1=state.cards.filter(function(c){return c.k[d].r&&c.k[d].b===1;}).length;
@@ -283,12 +309,18 @@ function renderHome(){
   });
   var m=$('more30');
   m.style.display=(!due&&avail)?'block':'none';
-  m.textContent='Fach 1 jetzt auffüllen ('+WINDOW+')';
+  m.textContent='Fach 1 jetzt auffüllen';
   var wait=0;
   dirs.forEach(function(d){wait=Math.max(wait,state.cards.filter(function(c){return !c.k[d].r;}).length);});
   var msg=wait?' Noch '+wait+' Vokabeln warten auf Freischaltung.':'';
   $('homeNote').textContent=(state.cards.length?(due?'':'Alles erledigt für heute.'+nextDueText()):'Lege zuerst im Tab „Vokabeln“ Karten an.')+msg;
 }
+$('boxes').onclick=function(e){
+  var bx=e.target.closest('.box');if(!bx)return;
+  var f=+bx.dataset.f;
+  state.fach=(state.fach===f)?null:f;
+  save();renderHome();
+};
 $('more30').onclick=function(){
   curDirs().forEach(function(d){
     var cnt=0;
@@ -301,16 +333,25 @@ $('more30').onclick=function(){
 document.querySelectorAll('#dir button').forEach(function(b){b.onclick=function(){state.dir=b.dataset.d;save();renderHome();};});
 
 /* Vokabelliste */
+var wfil='0';
 function renderWords(){
   var q=$('q').value.trim().toLowerCase();
+  $('filt').classList.toggle('fon',wfil!=='0');
   var cs=state.cards.filter(function(c){return !q||c.f.toLowerCase().indexOf(q)>-1||c.b.toLowerCase().indexOf(q)>-1;});
+  if(wfil==='w')cs=cs.filter(function(c){return !c.k.fw.r||!c.k.bw.r;});
+  else if(wfil!=='0')cs=cs.filter(function(c){return DIRS.some(function(d){return c.k[d].r&&c.k[d].b===+wfil;});});
   cs.sort(function(a,b){return a.f.localeCompare(b.f,'de');});
   if(!cs.length){$('list').innerHTML='<div class="empty">'+(state.cards.length?'Keine Treffer':'Noch keine Vokabeln')+'</div>';return;}
   $('list').innerHTML=cs.map(function(c){
-    return '<div class="item" data-id="'+c.id+'"><div class="t"><div>'+esc(c.f)+'</div><div><small>'+esc(c.b)+'</small></div></div><span class="badge">W→Ü '+(c.k.fw.r?c.k.fw.b:'–')+'<br>Ü→W '+(c.k.bw.r?c.k.bw.b:'–')+'</span></div>';
+    return '<div class="item" data-id="'+c.id+'"><div class="t"><div>'+esc(c.f)+'</div><div><small>'+esc(c.b)+'</small></div></div><span class="badge">IT→DE '+(c.k.fw.r?c.k.fw.b:'–')+'<br>DE→IT '+(c.k.bw.r?c.k.bw.b:'–')+'</span></div>';
   }).join('');
 }
 $('q').oninput=renderWords;
+$('filt').onclick=function(){
+  var o=[['0','Alle'],['1','Fach 1'],['2','Fach 2'],['3','Fach 3'],['4','Fach 4'],['5','Fach 5'],['w','Wartet auf Freischaltung']];
+  openSheet('<h2>Filter</h2>'+o.map(function(x){return '<button class="btn'+(x[0]===wfil?'':' sec')+'" data-f="'+x[0]+'" style="margin-bottom:8px">'+x[1]+'</button>';}).join(''));
+  document.querySelectorAll('#sheetBox button[data-f]').forEach(function(b){b.onclick=function(){wfil=b.dataset.f;closeSheet();renderWords();};});
+};
 $('list').onclick=function(e){
   var it=e.target.closest('.item');if(!it)return;
   var c=state.cards.filter(function(x){return x.id===it.dataset.id;})[0];
@@ -326,8 +367,8 @@ $('sheet').onclick=function(e){if(e.target===$('sheet'))closeSheet();};
 function editSheet(c){
   var neu=!c;
   openSheet('<h2>'+(neu?'Neue Vokabel':'Vokabel bearbeiten')+'</h2>'
-    +'<input id="sf" placeholder="Wort" autocomplete="off" autocapitalize="none" value="'+(neu?'':esc(c.f))+'">'
-    +'<input id="sb" placeholder="Übersetzung" autocomplete="off" autocapitalize="none" value="'+(neu?'':esc(c.b))+'">'
+    +'<input id="sf" placeholder="Italienisch" autocomplete="off" autocapitalize="none" value="'+(neu?'':esc(c.f))+'">'
+    +'<input id="sb" placeholder="Deutsch" autocomplete="off" autocapitalize="none" value="'+(neu?'':esc(c.b))+'">'
     +'<div class="row"><button class="btn sec" id="sc">Abbrechen</button><button class="btn" id="ss">'+(neu?'Hinzufügen':'Sichern')+'</button></div>'
     +(neu?'':'<div style="height:10px"></div><button class="btn red" id="sd">Löschen</button>'));
   $('sc').onclick=closeSheet;
@@ -396,7 +437,7 @@ function decode(buf){
 function openImport(){
   openSheet('<h2>Importieren</h2>'
     +'<label class="btn sec" style="text-align:center;margin-bottom:10px">CSV-Datei wählen<input type="file" id="ifile" accept=".csv,.txt,text/csv,text/plain" style="display:none"></label>'
-    +'<p class="note">Oder Text einfügen: eine Vokabel pro Zeile, Wort und Übersetzung getrennt durch Semikolon, Komma, Tabulator oder „=“. Weitere Spalten werden ignoriert, eine Kopfzeile wird übersprungen.</p>'
+    +'<p class="note">Oder Text einfügen: eine Vokabel pro Zeile, Italienisch und Deutsch getrennt durch Semikolon, Komma, Tabulator oder „=“. Weitere Spalten werden ignoriert, eine Kopfzeile wird übersprungen.</p>'
     +'<textarea id="it" placeholder="haus;house&#10;Hund;dog" autocapitalize="none"></textarea>'
     +'<div class="row"><button class="btn sec" id="ic">Abbrechen</button><button class="btn" id="ii">Importieren</button></div>');
   $('ic').onclick=closeSheet;
@@ -414,7 +455,7 @@ function openImport(){
 };
 function exportCsv(){
   if(!state.cards.length){alert('Keine Vokabeln vorhanden.');return;}
-  var csv='Wort;Übersetzung;Fach W→Ü;Fällig W→Ü;Fach Ü→W;Fällig Ü→W\n'+state.cards.map(function(c){
+  var csv='Italienisch;Deutsch;Fach IT→DE;Fällig IT→DE;Fach DE→IT;Fällig DE→IT\n'+state.cards.map(function(c){
     return [c.f,c.b,c.k.fw.b,c.k.fw.d,c.k.bw.b,c.k.bw.d].map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join(';');
   }).join('\n');
   saveFile('vokabeln.csv','text/csv','\ufeff'+csv);
@@ -480,11 +521,20 @@ $('reset').onclick=function(){
 
 /* Lernen */
 var S=null;
+$('prac').onclick=function(){
+  var pick=shuffle(practicePool()).slice(0,10);if(!pick.length)return;
+  S={practice:true,hist:[],queue:pick.map(function(x){return{c:x.c,d:x.d,retry:false,rev:x.d==='bw'};}),total:pick.length,done:0,right:0,flipped:false};
+  $('learn').classList.add('on');
+  showCard();
+};
 $('start').onclick=function(){
-  var due=dueEntries();if(!due.length)return;
+  var due=dueEntries().filter(function(x){return !state.fach||x.c.k[x.d].b===state.fach;});if(!due.length)return;
   var by={},pick=[];
   due.forEach(function(x){(by[x.c.id]=by[x.c.id]||[]).push(x);});
   due.forEach(function(x){var l=by[x.c.id];if(l){pick.push(l[Math.floor(Math.random()*l.length)]);by[x.c.id]=null;}});
+  for(var i=pick.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pick[i];pick[i]=pick[j];pick[j]=t;}
+  pick.forEach(function(x,i){x.o=i;});
+  pick.sort(function(x,y){return (x.c.k[x.d].b-y.c.k[y.d].b)||(x.o-y.o);});
   due=pick;
   S={hist:[],queue:due.map(function(x){return{c:x.c,d:x.d,retry:false,rev:x.d==='bw'};}),total:due.length,done:0,right:0,flipped:false};
   $('learn').classList.add('on');
@@ -525,7 +575,9 @@ function flip(){
 function answer(ok){
   var it=S.queue.shift(),s=it.c.k[it.d];
   S.hist.push({it:it,b:s.b,d:s.d,ok:ok,done:S.done,right:S.right});
-  if(ok){
+  if(S.practice){
+    if(ok)S.right++;
+  }else if(ok){
     s.b=Math.min(5,s.b+1); // Fach hoch
     s.d=inDays(INTERVALS[s.b]);
     S.right++;
@@ -533,7 +585,8 @@ function answer(ok){
     s.b=1;s.d=today(); // zurück in Fach 1, sofort wieder fällig (in der nächsten Session)
   }
   S.done++;
-  topUp();save();showCard();
+  if(!S.practice){topUp();save();}
+  showCard();
 }
 function markUnimportant(){
   if(!S||!S.queue.length)return;
